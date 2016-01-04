@@ -1,0 +1,12 @@
+.menu-animation {
+  -webkit-transition: all linear 0.5s;
+  -moz-transition: all linear 0.5s;
+  transition: all linear 0.5s;
+}
+
+.menu-animation.ng-hide {
+  -webkit-transform: translate3d(0%, -100%, 0px);
+  -moz-transform: translate3d(0%, -100%, 0px);
+  transform: translate3d(0%, -100%, 0px);
+  transition: 0.5s;
+}
