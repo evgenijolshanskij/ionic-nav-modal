@@ -8,6 +8,11 @@
         <button class="button button-icon button-clear ion-navicon" menu-toggle="left">
         </button>
       </ion-nav-buttons>
+      <ion-nav-buttons side="right">
+        <button class="button button-icon button-clear" ng-click="viewInfo()">
+          <i class="icon ion-information-circled"></i>
+        </button>
+      </ion-nav-buttons>
     </ion-nav-bar>
     <ion-nav-view name="menuContent"></ion-nav-view>
   </ion-side-menu-content>
@@ -24,11 +29,12 @@
         <ion-item menu-close href="#/app/playlists">
           Playlists
         </ion-item>
-        <ion-item menu-close ng-click="viewAbout()">
-          About
-        </ion-item>
+        <!--<ion-item menu-close ng-click="viewInfo()">-->
+        <!--<ion-item menu-close href="#/about">-->
+          <!--About-->
+        <!--</ion-item>-->
       </ion-list>
     </ion-content>
   </ion-side-menu>
 </ion-side-menus>
-<ng-include src="'templates/about.html'"></ng-include>
+<ng-include src="'templates/info.html'"></ng-include>
