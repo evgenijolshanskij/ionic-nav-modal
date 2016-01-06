@@ -58,15 +58,6 @@ angular.module('starter', ['ionic', 'starter.controllers', 'ngAnimate'])
         controller: 'PlaylistCtrl'
       }
     }
-  })
-
-  .state('app.about', {
-    url: '/about',
-    views: {
-      'aboutContent': {
-        templateUrl: 'templates/about.html'
-      }
-    }
   });
   // if none of the above states are matched, use this as the fallback
   $urlRouterProvider.otherwise('/app/playlists');
