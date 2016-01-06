@@ -1,6 +1,6 @@
 angular.module('starter.controllers', [])
 
-.controller('AppCtrl', function($scope, $ionicModal, $timeout) {
+.controller('AppCtrl', function($scope, $ionicModal, $timeout, $ionicPlatform, $rootScope, $state, $window, $ionicHistory) {
 
   // With the new view caching in Ionic, Controllers are only called
   // when they are recreated or on app start, instead of every page change.
@@ -41,16 +41,15 @@ angular.module('starter.controllers', [])
   };
 
     $scope.myGoBack = function() {
-      //$ionicNavBarDelegate.back();
       $window.history.back();
     };
 
-    $scope.hideAbout = true;
+    $scope.hideInfo = true;
 
     $scope.menu = [
-      {name: 'home', url: '../templates/about-home.html', isActive: true},
-      {name: 'section1', url: '../templates/about-section-1.html', isActive: false},
-      {name: 'section2', url: '../templates/about-section-2.html', isActive: false}
+      {name: 'home', url: 'templates/info-home.html', isActive: true},
+      {name: 'section1', url: 'templates/info-section-1.html', isActive: false},
+      {name: 'section2', url: 'templates/info-section-2.html', isActive: false}
     ];
 
     function setActive(name) {
@@ -63,18 +62,28 @@ angular.module('starter.controllers', [])
       setActive(name);
     };
 
-    $scope.viewAbout = function(){
-      $scope.hideAbout = false;
+    $scope.viewInfo = function(){
+      $scope.hideInfo = false;
     };
 
-    $scope.closeAbout = function () {
-      if (!$scope.hideAbout) {
-        $scope.hideAbout = true;
+    $scope.closeInfo = function () {
+      $scope.hideInfo = true;
+      setActive('home');
+    };
+
+    // Hardware back button handler
+    $ionicPlatform.registerBackButtonAction(function () {
+      if (!$scope.hideInfo) {
+        // Close info view if it is opened
+        $scope.closeInfo();
+        $state.go($state.current.name);
+      } else if ($ionicHistory.viewHistory().currentView.backViewId === null) {
+        // Quit app if there is no way back
+        ionic.Platform.exitApp();
       } else {
         $scope.myGoBack();
       }
-      setActive('home');
-    };
+    }, 1000);
 
   })
 
