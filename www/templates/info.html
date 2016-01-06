@@ -1,0 +1,5 @@
+<div ng-cloak>
+  <ion-pane ng-hide="hideInfo" class="menu-animation">
+    <ion-pane ng-repeat="item in menu" ng-show="item.isActive" ng-include="item.url"></ion-pane>
+  </ion-pane>
+</div>
