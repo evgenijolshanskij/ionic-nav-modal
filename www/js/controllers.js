@@ -40,10 +40,6 @@ angular.module('starter.controllers', [])
     }, 1000);
   };
 
-    $scope.myGoBack = function() {
-      $window.history.back();
-    };
-
     $scope.hideInfo = true;
 
     $scope.menu = [
@@ -84,6 +80,10 @@ angular.module('starter.controllers', [])
         $scope.myGoBack();
       }
     }, 1000);
+
+    $scope.myGoBack = function() {
+      $ionicHistory.goBack();
+    };
 
   })
 
