@@ -1,6 +1,6 @@
 angular.module('starter.controllers', [])
 
-.controller('AppCtrl', function($scope, $ionicModal, $timeout, $ionicPlatform, $rootScope, $state, $window, $ionicHistory) {
+.controller('AppCtrl', function($scope, $ionicModal, $timeout, $ionicPlatform, $rootScope, $state, $window, $ionicHistory, routingModal) {
 
   // With the new view caching in Ionic, Controllers are only called
   // when they are recreated or on app start, instead of every page change.
@@ -40,52 +40,24 @@ angular.module('starter.controllers', [])
     }, 1000);
   };
 
-    $scope.hideInfo = true;
+  var modal = routingModal.initialize('templates/info.html', {
+      scope: $scope,
+      menu: [
+        {name: 'home', url: 'templates/info-home.html', isActive: true, parent: true},
+        {name: 'section1', url: 'templates/info-section-1.html', isActive: false},
+        {name: 'section2', url: 'templates/info-section-2.html', isActive: false}
+      ]
+  });
 
-    $scope.menu = [
-      {name: 'home', url: 'templates/info-home.html', isActive: true},
-      {name: 'section1', url: 'templates/info-section-1.html', isActive: false},
-      {name: 'section2', url: 'templates/info-section-2.html', isActive: false}
-    ];
+  $scope.showInfo = function(){
+    modal.show();
+  };
 
-    function setActive(name) {
-      angular.forEach($scope.menu, function (item) {
-        item.isActive = (item.name === name);
-      });
-    }
+  $scope.closeInfo = function () {
+    modal.close();
+  };
 
-    $scope.showMenu = function (name) {
-      setActive(name);
-    };
-
-    $scope.viewInfo = function(){
-      $scope.hideInfo = false;
-    };
-
-    $scope.closeInfo = function () {
-      $scope.hideInfo = true;
-      setActive('home');
-    };
-
-    // Hardware back button handler
-    $ionicPlatform.registerBackButtonAction(function () {
-      if (!$scope.hideInfo) {
-        // Close info view if it is opened
-        $scope.closeInfo();
-        $state.go($state.current.name);
-      } else if ($ionicHistory.viewHistory().currentView.backViewId === null) {
-        // Quit app if there is no way back
-        ionic.Platform.exitApp();
-      } else {
-        $scope.myGoBack();
-      }
-    }, 1000);
-
-    $scope.myGoBack = function() {
-      $ionicHistory.goBack();
-    };
-
-  })
+})
 
 .controller('PlaylistsCtrl', function($scope) {
   $scope.playlists = [
