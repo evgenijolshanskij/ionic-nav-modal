@@ -1,33 +1,9 @@
 angular.module('starter.controllers', [])
 
-.controller('AppCtrl', function($scope, $ionicModal, $timeout, $ionicPlatform, $rootScope, $state, $window, $ionicHistory, routingModal) {
-
-  // With the new view caching in Ionic, Controllers are only called
-  // when they are recreated or on app start, instead of every page change.
-  // To listen for when this page is active (for example, to refresh data),
-  // listen for the $ionicView.enter event:
-  //$scope.$on('$ionicView.enter', function(e) {
-  //});
+.controller('AppCtrl', function($scope, $timeout, navigableModal) {
 
   // Form data for the login modal
   $scope.loginData = {};
-
-  // Create the login modal that we will use later
-  $ionicModal.fromTemplateUrl('templates/login.html', {
-    scope: $scope
-  }).then(function(modal) {
-    $scope.modal = modal;
-  });
-
-  // Triggered in the login modal to close it
-  $scope.closeLogin = function() {
-    $scope.modal.hide();
-  };
-
-  // Open the login modal
-  $scope.login = function() {
-    $scope.modal.show();
-  };
 
   // Perform the login action when the user submits the login form
   $scope.doLogin = function() {
@@ -40,13 +16,14 @@ angular.module('starter.controllers', [])
     }, 1000);
   };
 
-  var modal = routingModal.initialize('templates/info.html', {
-      scope: $scope,
-      menu: [
-        {name: 'home', url: 'templates/info-home.html', isActive: true, parent: true},
-        {name: 'section1', url: 'templates/info-section-1.html', isActive: false},
-        {name: 'section2', url: 'templates/info-section-2.html', isActive: false}
-      ]
+  // Modal service initialization
+  var modal = navigableModal.initialize({
+    scope: $scope,
+    menu: [
+      {name: 'home', url: 'templates/info-home.html', isActive: true, root: true},
+      {name: 'section1', url: 'templates/info-section-1.html', isActive: false, prev: 'home'},
+      {name: 'section2', url: 'templates/info-section-2.html', isActive: false, prev: 'home'}
+    ]
   });
 
   $scope.showInfo = function(){
@@ -56,6 +33,14 @@ angular.module('starter.controllers', [])
   $scope.closeInfo = function () {
     modal.close();
   };
+
+  $scope.activateMenu = function (name) {
+    modal.activateMenu(name);
+  };
+
+  $scope.previous = function () {
+    modal.previous();
+  }
 
 })
 
