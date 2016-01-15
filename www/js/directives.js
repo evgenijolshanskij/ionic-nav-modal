@@ -4,7 +4,7 @@ angular.module('starter.directives', [])
  * Directive renders container template for modal content.
  * Works along with the navigableModal service.
  */
-.directive('eModal', ['emptyModal', function (navigatingModal) {
+.directive('eModal', ['customModal', function (customModal) {
 
   var template = '<ion-pane ng-hide="hidden" class="menu-animation ng-hide"></ion-pane>';
 
@@ -28,7 +28,7 @@ angular.module('starter.directives', [])
       }
     };
 
-    navigatingModal.registerDirective(handler);
+    customModal.registerDirective(handler);
 
   };
 
@@ -44,7 +44,7 @@ angular.module('starter.directives', [])
 
 }])
 
-.directive('navMenu', ['navigatingMenu', '$compile', function (navigatingMenu, $compile) {
+.directive('navMenu', ['modalViews', '$compile', function (modalViews, $compile) {
 
   var template = '<ion-pane ng-repeat="item in menu" ng-show="item.isActive" ng-include="item.url"></ion-pane>';
 
@@ -65,7 +65,7 @@ angular.module('starter.directives', [])
       }
     };
 
-    navigatingMenu.registerDirective(handler);
+    modalViews.registerDirective(handler);
 
   };
 

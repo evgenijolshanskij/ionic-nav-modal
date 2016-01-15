@@ -4,7 +4,7 @@ angular.module('starter.services', [])
  * Service created for managing the modal window rendered by eModal directive.
  * Provides object with functions for opening, closing and navigating within the modal.
  */
-.factory('emptyModal', ['$ionicPlatform', '$ionicHistory', '$state', function ($ionicPlatform, $ionicHistory, $state) {
+.factory('customModal', ['$ionicPlatform', '$ionicHistory', '$state', function ($ionicPlatform, $ionicHistory, $state) {
 
   var directive = undefined;
   function isUndefined(obj) { return obj === undefined }
@@ -78,7 +78,7 @@ angular.module('starter.services', [])
 /**
  * Service for managing pages inside eModal rendered by navMenu directive.
  */
-.factory('navigatingMenu', ['emptyModal', '$timeout', function (emptyModal, $timeout) {
+.factory('modalViews', ['customModal', '$timeout', function (customModal, $timeout) {
 
   var directive;
 
@@ -100,7 +100,7 @@ angular.module('starter.services', [])
         modalWithRoutes = {},
         currentItem,
         root,
-        modal = emptyModal.initialize({
+        modal = customModal.initialize({
           afterClosed: function () {
             // Time is needed window to be closed
             $timeout(function () {

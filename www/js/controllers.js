@@ -1,6 +1,6 @@
 angular.module('starter.controllers', [])
 
-.controller('AppCtrl', function($scope, $timeout, navigatingMenu) {
+.controller('AppCtrl', function($scope, $timeout, modalViews) {
 
   // Form data for the login modal
   $scope.loginData = {};
@@ -17,7 +17,7 @@ angular.module('starter.controllers', [])
   };
 
   // Modal service initialization
-  var modal = navigatingMenu.initialize({
+  var modal = modalViews.initialize({
     erasable: false,
     returnable: true,
     views: [
