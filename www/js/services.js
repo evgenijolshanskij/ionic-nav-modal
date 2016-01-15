@@ -69,9 +69,7 @@ angular.module('starter.services', [])
      * @param handler an object that provides methods for managing the modal.
      */
     registerDirective: function (handler) {
-      if (id === handler.getId) {
-        directive = handler;
-      }
+      directive = handler;
     }
   }
 
