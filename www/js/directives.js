@@ -1,10 +1,10 @@
-angular.module('starter.directive', [])
+angular.module('starter.directives', [])
 
 /**
  * Directive renders container template for modal content.
  * Works along with the navigableModal service.
  */
-.directive('navModal', ['navigatingModal', function (navigatingModal) {
+.directive('eModal', ['emptyModal', function (navigatingModal) {
 
   var template = '<ion-pane ng-hide="hidden" class="menu-animation ng-hide"></ion-pane>';
 
@@ -68,7 +68,7 @@ angular.module('starter.directive', [])
   };
 
   return {
-    require: '^navModal',
+    require: '^eModal',
     restrict: 'E',
     transclude: true,
     template: template,

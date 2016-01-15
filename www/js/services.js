@@ -1,10 +1,10 @@
 angular.module('starter.services', [])
 
 /**
- * Service created for managing the modal window rendered by navModal directive.
+ * Service created for managing the modal window rendered by eModal directive.
  * Provides object with functions for opening, closing and navigating within the modal.
  */
-.factory('navigatingModal', ['$ionicPlatform', '$ionicHistory', '$state', function ($ionicPlatform, $ionicHistory, $state) {
+.factory('emptyModal', ['$ionicPlatform', '$ionicHistory', '$state', function ($ionicPlatform, $ionicHistory, $state) {
 
   var navModalDirective;
 
@@ -56,9 +56,9 @@ angular.module('starter.services', [])
 }])
 
 /**
- * Service for managing pages inside modal.
+ * Service for managing pages inside eModal rendered by navMenu directive.
  */
-.factory('navigatingMenu', ['navigatingModal', '$timeout', function (navigatingModal, $timeout) {
+.factory('navigatingMenu', ['emptyModal', '$timeout', function (emptyModal, $timeout) {
 
   var navMenuDirective;
 
@@ -77,7 +77,7 @@ angular.module('starter.services', [])
       var views = options.views,
         erasable = options.erasable,
         returnable= options.returnable,
-        modal = navigatingModal.initialize(),
+        modal = emptyModal.initialize(),
         modalWithRoutes = {},
         currentItem,
         root;

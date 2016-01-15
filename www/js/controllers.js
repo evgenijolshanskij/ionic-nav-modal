@@ -41,7 +41,7 @@ angular.module('starter.controllers', [])
 
   $scope.previous = function () {
     modal.previous();
-  }
+  };
 
 })
 
