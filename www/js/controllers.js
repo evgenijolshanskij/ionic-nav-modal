@@ -1,6 +1,6 @@
 angular.module('starter.controllers', [])
 
-.controller('AppCtrl', function($scope, $timeout, navigableModal) {
+.controller('AppCtrl', function($scope, $timeout, navigatingModal) {
 
   // Form data for the login modal
   $scope.loginData = {};
@@ -17,8 +17,8 @@ angular.module('starter.controllers', [])
   };
 
   // Modal service initialization
-  var modal = navigableModal.initialize({
-    scope: $scope,
+  var modal = navigatingModal.initialize({
+    reloadable: false,
     menu: [
       {name: 'home', url: 'templates/info-home.html', isActive: true, root: true},
       {name: 'section1', url: 'templates/info-section-1.html', isActive: false, prev: 'home'},
