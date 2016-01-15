@@ -97,10 +97,10 @@ angular.module('starter.services', [])
       var views = options.views,
         erasable = options.erasable,
         returnable= options.returnable,
-        modalWithRoutes = {},
+        modalWithViews = {},
         currentItem,
         root,
-        modal = customModal.initialize({
+        customModal = customModal.initialize({
           afterClosed: function () {
             // Time is needed window to be closed
             $timeout(function () {
@@ -131,24 +131,24 @@ angular.module('starter.services', [])
         directive.updateMenu(views);
       }
 
-      modalWithRoutes.show = function () {
+      modalWithViews.show = function () {
         if (directive.isEmptyMenu()) directive.updateMenu(views);
-        modal.show();
+        customModal.show();
       };
 
-      modalWithRoutes.close = function () {
-        modal.close();
+      modalWithViews.close = function () {
+        customModal.close();
       };
 
-      modalWithRoutes.activateMenu = function (name) {
+      modalWithViews.activateMenu = function (name) {
         setActive(name);
       };
 
-      modalWithRoutes.previous= function () {
+      modalWithViews.previous= function () {
         setActive(currentItem.prev);
       };
 
-      return modalWithRoutes;
+      return modalWithViews;
 
     },
 
