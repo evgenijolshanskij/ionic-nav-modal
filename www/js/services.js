@@ -1,8 +1,49 @@
 angular.module('starter.services', [])
 
-.factory('navigatingModal1', [function () {
+.factory('navigatingModal', ['$ionicPlatform', '$ionicHistory', '$state', function ($ionicPlatform, $ionicHistory, $state) {
 
+  var navModalDirective;
 
+  return {
+    initialize: function () {
+      var modal = {};
+
+      /* Global go back event implementation */
+      var myGoBack = function() {
+        $ionicHistory.goBack();
+      };
+
+      /* Hardware back button handler */
+      $ionicPlatform.registerBackButtonAction(function () {
+        if (navModalDirective.isHidden) {
+          // Close info view if it is opened
+          navModalDirective.close();
+          // In order to trigger Info window hiding state changing is simulated
+          $state.go($state.current.name);
+        } else if ($ionicHistory.viewHistory().currentView.backViewId === null) {
+          // Quit app if there is no way back
+          ionic.Platform.exitApp();
+        } else {
+          myGoBack();
+        }
+      }, 1000);
+
+      modal.show = function () {
+        navModalDirective.show();
+      };
+
+      modal.close = function () {
+        navModalDirective.close();
+      };
+
+      return modal;
+
+    },
+
+    registerDirective: function (directiveManager) {
+      navModalDirective = directiveManager;
+    }
+  }
 
 }])
 
@@ -10,9 +51,9 @@ angular.module('starter.services', [])
  * Service created for managing the modal window rendered by navModal directive.
  * Provides object with functions for opening, closing and navigating within the modal.
  */
-.factory('navigatingModal', ['$ionicHistory', '$ionicPlatform', '$state', '$timeout', function ($ionicHistory, $ionicPlatform, $state, $timeout) {
+.factory('navigatingMenu', ['navigatingModal', '$timeout', '$compile', '$rootScope', function (navigatingModal, $timeout, $compile, $rootScope) {
 
-  var directive;
+  var navMenuDirective;
 
   return {
 
@@ -27,7 +68,10 @@ angular.module('starter.services', [])
 
       /* Variables initialization */
       var menu = options.menu,
-        modal = {},
+        erasable = options.erasable,
+        returnable= options.returnable,
+        modal = navigatingModal.initialize(),
+        modalWithMenu = {},
         currentItem,
         root;
 
@@ -37,7 +81,6 @@ angular.module('starter.services', [])
         angular.forEach(menu, function (v, k) {
           if (v.root) matched = v;
         });
-        console.log(matched);
         return matched;
       };
       root = findRoot();
@@ -50,51 +93,32 @@ angular.module('starter.services', [])
             item.isActive = true;
           } else item.isActive = false;
         });
-        directive.updateMenu(menu);
+        navMenuDirective.updateMenu(menu);
       }
 
-      /* Global go back event implementation */
-      var myGoBack = function() {
-        $ionicHistory.goBack();
+      modalWithMenu.show = function () {
+        if (navMenuDirective.isEmptyMenu()) navMenuDirective.updateMenu(menu);
+        modal.show();
       };
 
-      /* Hardware back button handler */
-      $ionicPlatform.registerBackButtonAction(function () {
-        if (directive.isHidden) {
-          // Close info view if it is opened
-          directive.close();
-          // In order to trigger Info window hiding state changing is simulated
-          $state.go($state.current.name);
-        } else if ($ionicHistory.viewHistory().currentView.backViewId === null) {
-          // Quit app if there is no way back
-          ionic.Platform.exitApp();
-        } else {
-          myGoBack();
-        }
-      }, 1000);
-
-      modal.show = function () {
-        if (directive.isEmptyMenu()) directive.updateMenu(menu);
-        directive.show();
-      };
-
-      modal.close = function () {
-        directive.close();
+      modalWithMenu.close = function () {
+        modal.close();
         // Time is needed window to be closed
         $timeout(function () {
-          setActive(root.name);
+          if (erasable) navMenuDirective.recompile();
+          if (returnable) setActive(root.name);
         }, 1000);
       };
 
-      modal.activateMenu = function (name) {
+      modalWithMenu.activateMenu = function (name) {
         setActive(name);
       };
 
-      modal.previous = function () {
+      modalWithMenu.previous= function () {
         setActive(currentItem.prev);
       };
 
-      return modal;
+      return modalWithMenu;
 
     },
 
@@ -103,7 +127,7 @@ angular.module('starter.services', [])
      * @param directiveManager an object that provides methods for managing the modal.
      */
     registerDirective: function (directiveManager) {
-      directive = directiveManager;
+      navMenuDirective = directiveManager;
     }
 
   }
