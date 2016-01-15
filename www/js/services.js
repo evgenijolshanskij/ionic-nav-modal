@@ -6,27 +6,29 @@ angular.module('starter.services', [])
  */
 .factory('emptyModal', ['$ionicPlatform', '$ionicHistory', '$state', function ($ionicPlatform, $ionicHistory, $state) {
 
-  var eModalDirective = undefined;
+  var directive = undefined;
   function isUndefined(obj) { return obj === undefined }
+
+  var initFunction = function (f) { return isUndefined(f) ? function(){} : f; };
 
   return {
     initialize: function (options) {
 
       var modal = {},
-        beforeOpened = isUndefined(options.beforeOpened) ? function(){} : options.beforeOpened,
-        afterOpened = isUndefined(options.afterOpened) ? function(){} : options.afterOpened,
-        beforeClosed = isUndefined(options.beforeClosed) ? function(){} : options.beforeClosed,
-        afterClosed = isUndefined(options.afterClosed) ? function(){} : options.afterClosed;
+        beforeOpened = initFunction(options.beforeOpened),
+        afterOpened = initFunction(options.afterOpened),
+        beforeClosed = initFunction(options.beforeClosed),
+        afterClosed = initFunction(options.afterClosed);
 
       var show = function() {
         beforeOpened();
-        eModalDirective.show();
+        directive.show();
         afterOpened();
       };
 
       var close = function () {
         beforeClosed();
-        eModalDirective.close();
+        directive.close();
         afterClosed();
       };
 
@@ -37,7 +39,7 @@ angular.module('starter.services', [])
 
       /* Hardware back button handler */
       $ionicPlatform.registerBackButtonAction(function () {
-        if (!isUndefined(eModalDirective) && !eModalDirective.isHidden()) {
+        if (!isUndefined(directive) && !directive.isHidden()) {
           // Close info view if it is opened
           close();
           // In order to trigger modal hiding, state changing is simulated
@@ -64,10 +66,12 @@ angular.module('starter.services', [])
 
     /**
      *
-     * @param directiveManager an object that provides methods for managing the modal.
+     * @param handler an object that provides methods for managing the modal.
      */
-    registerDirective: function (directiveManager) {
-      eModalDirective = directiveManager;
+    registerDirective: function (handler) {
+      if (id === handler.getId) {
+        directive = handler;
+      }
     }
   }
 
@@ -78,7 +82,7 @@ angular.module('starter.services', [])
  */
 .factory('navigatingMenu', ['emptyModal', '$timeout', function (emptyModal, $timeout) {
 
-  var navMenuDirective;
+  var directive;
 
   return {
 
@@ -99,13 +103,13 @@ angular.module('starter.services', [])
         currentItem,
         root,
         modal = emptyModal.initialize({
-        afterClosed: function () {
-          // Time is needed window to be closed
-          $timeout(function () {
-            if (erasable) navMenuDirective.recompile();
-            if (returnable) setActive(root.name);
-          }, 1000);
-        }
+          afterClosed: function () {
+            // Time is needed window to be closed
+            $timeout(function () {
+              if (erasable) directive.recompile();
+              if (returnable) setActive(root.name);
+            }, 1000);
+          }
       });
 
       /* Finds root page */
@@ -126,11 +130,11 @@ angular.module('starter.services', [])
             item.isActive = true;
           } else item.isActive = false;
         });
-        navMenuDirective.updateMenu(views);
+        directive.updateMenu(views);
       }
 
       modalWithRoutes.show = function () {
-        if (navMenuDirective.isEmptyMenu()) navMenuDirective.updateMenu(views);
+        if (directive.isEmptyMenu()) directive.updateMenu(views);
         modal.show();
       };
 
@@ -152,10 +156,10 @@ angular.module('starter.services', [])
 
     /**
      *
-     * @param directiveManager an object that provides methods for managing pages.
+     * @param handler an object that provides methods for managing pages.
      */
-    registerDirective: function (directiveManager) {
-      navMenuDirective = directiveManager;
+    registerDirective: function (handler) {
+      directive = handler;
     }
 
   }

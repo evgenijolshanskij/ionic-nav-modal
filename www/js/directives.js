@@ -16,7 +16,7 @@ angular.module('starter.directives', [])
 
     scope.hidden = true;
 
-    var manageIt = {
+    var handler = {
       show: function () {
         scope.hidden = false;
       },
@@ -28,7 +28,7 @@ angular.module('starter.directives', [])
       }
     };
 
-    navigatingModal.registerDirective(manageIt);
+    navigatingModal.registerDirective(handler);
 
   };
 
@@ -52,7 +52,7 @@ angular.module('starter.directives', [])
 
     scope.menu = [];
 
-    var manageIt = {
+    var handler = {
       isEmptyMenu: function () {
         return scope.menu.length === 0;
       },
@@ -65,7 +65,7 @@ angular.module('starter.directives', [])
       }
     };
 
-    navigatingMenu.registerDirective(manageIt);
+    navigatingMenu.registerDirective(handler);
 
   };
 
