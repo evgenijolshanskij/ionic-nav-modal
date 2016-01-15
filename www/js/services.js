@@ -6,11 +6,29 @@ angular.module('starter.services', [])
  */
 .factory('emptyModal', ['$ionicPlatform', '$ionicHistory', '$state', function ($ionicPlatform, $ionicHistory, $state) {
 
-  var navModalDirective;
+  var eModalDirective = undefined;
+  function isUndefined(obj) { return obj === undefined }
 
   return {
-    initialize: function () {
-      var modal = {};
+    initialize: function (options) {
+
+      var modal = {},
+        beforeOpened = isUndefined(options.beforeOpened) ? function(){} : options.beforeOpened,
+        afterOpened = isUndefined(options.afterOpened) ? function(){} : options.afterOpened,
+        beforeClosed = isUndefined(options.beforeClosed) ? function(){} : options.beforeClosed,
+        afterClosed = isUndefined(options.afterClosed) ? function(){} : options.afterClosed;
+
+      var show = function() {
+        beforeOpened();
+        eModalDirective.show();
+        afterOpened();
+      };
+
+      var close = function () {
+        beforeClosed();
+        eModalDirective.close();
+        afterClosed();
+      };
 
       /* Global go back event implementation */
       var myGoBack = function() {
@@ -19,10 +37,10 @@ angular.module('starter.services', [])
 
       /* Hardware back button handler */
       $ionicPlatform.registerBackButtonAction(function () {
-        if (navModalDirective.isHidden) {
+        if (!isUndefined(eModalDirective) && !eModalDirective.isHidden()) {
           // Close info view if it is opened
-          navModalDirective.close();
-          // In order to trigger Info window hiding state changing is simulated
+          close();
+          // In order to trigger modal hiding, state changing is simulated
           $state.go($state.current.name);
         } else if ($ionicHistory.viewHistory().currentView.backViewId === null) {
           // Quit app if there is no way back
@@ -33,11 +51,11 @@ angular.module('starter.services', [])
       }, 1000);
 
       modal.show = function () {
-        navModalDirective.show();
+        show();
       };
 
       modal.close = function () {
-        navModalDirective.close();
+        close();
       };
 
       return modal;
@@ -49,7 +67,7 @@ angular.module('starter.services', [])
      * @param directiveManager an object that provides methods for managing the modal.
      */
     registerDirective: function (directiveManager) {
-      navModalDirective = directiveManager;
+      eModalDirective = directiveManager;
     }
   }
 
@@ -77,10 +95,18 @@ angular.module('starter.services', [])
       var views = options.views,
         erasable = options.erasable,
         returnable= options.returnable,
-        modal = emptyModal.initialize(),
         modalWithRoutes = {},
         currentItem,
-        root;
+        root,
+        modal = emptyModal.initialize({
+        afterClosed: function () {
+          // Time is needed window to be closed
+          $timeout(function () {
+            if (erasable) navMenuDirective.recompile();
+            if (returnable) setActive(root.name);
+          }, 1000);
+        }
+      });
 
       /* Finds root page */
       var findRoot = function() {
@@ -110,11 +136,6 @@ angular.module('starter.services', [])
 
       modalWithRoutes.close = function () {
         modal.close();
-        // Time is needed window to be closed
-        $timeout(function () {
-          if (erasable) navMenuDirective.recompile();
-          if (returnable) setActive(root.name);
-        }, 1000);
       };
 
       modalWithRoutes.activateMenu = function (name) {

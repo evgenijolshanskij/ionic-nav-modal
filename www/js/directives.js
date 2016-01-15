@@ -23,7 +23,9 @@ angular.module('starter.directives', [])
       close: function () {
         scope.hidden = true;
       },
-      isHidden: scope.hidden
+      isHidden: function () {
+        return (scope.hidden === undefined) ? true : scope.hidden;
+      }
     };
 
     navigatingModal.registerDirective(manageIt);
