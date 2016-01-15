@@ -1,5 +1,9 @@
 angular.module('starter.services', [])
 
+/**
+ * Service created for managing the modal window rendered by navModal directive.
+ * Provides object with functions for opening, closing and navigating within the modal.
+ */
 .factory('navigatingModal', ['$ionicPlatform', '$ionicHistory', '$state', function ($ionicPlatform, $ionicHistory, $state) {
 
   var navModalDirective;
@@ -40,6 +44,10 @@ angular.module('starter.services', [])
 
     },
 
+    /**
+     *
+     * @param directiveManager an object that provides methods for managing the modal.
+     */
     registerDirective: function (directiveManager) {
       navModalDirective = directiveManager;
     }
@@ -48,10 +56,9 @@ angular.module('starter.services', [])
 }])
 
 /**
- * Service created for managing the modal window rendered by navModal directive.
- * Provides object with functions for opening, closing and navigating within the modal.
+ * Service for managing pages inside modal.
  */
-.factory('navigatingMenu', ['navigatingModal', '$timeout', '$compile', '$rootScope', function (navigatingModal, $timeout, $compile, $rootScope) {
+.factory('navigatingMenu', ['navigatingModal', '$timeout', function (navigatingModal, $timeout) {
 
   var navMenuDirective;
 
@@ -67,18 +74,18 @@ angular.module('starter.services', [])
     initialize: function (options) {
 
       /* Variables initialization */
-      var menu = options.menu,
+      var views = options.views,
         erasable = options.erasable,
         returnable= options.returnable,
         modal = navigatingModal.initialize(),
-        modalWithMenu = {},
+        modalWithRoutes = {},
         currentItem,
         root;
 
       /* Finds root page */
       var findRoot = function() {
-        var matched;
-        angular.forEach(menu, function (v, k) {
+        var matched = undefined;
+        angular.forEach(views, function (v) {
           if (v.root) matched = v;
         });
         return matched;
@@ -87,21 +94,21 @@ angular.module('starter.services', [])
 
       /* Sets page as active */
       function setActive(name) {
-        angular.forEach(menu, function (item) {
+        angular.forEach(views, function (item) {
           if (item.name === name) {
             currentItem = item;
             item.isActive = true;
           } else item.isActive = false;
         });
-        navMenuDirective.updateMenu(menu);
+        navMenuDirective.updateMenu(views);
       }
 
-      modalWithMenu.show = function () {
-        if (navMenuDirective.isEmptyMenu()) navMenuDirective.updateMenu(menu);
+      modalWithRoutes.show = function () {
+        if (navMenuDirective.isEmptyMenu()) navMenuDirective.updateMenu(views);
         modal.show();
       };
 
-      modalWithMenu.close = function () {
+      modalWithRoutes.close = function () {
         modal.close();
         // Time is needed window to be closed
         $timeout(function () {
@@ -110,21 +117,21 @@ angular.module('starter.services', [])
         }, 1000);
       };
 
-      modalWithMenu.activateMenu = function (name) {
+      modalWithRoutes.activateMenu = function (name) {
         setActive(name);
       };
 
-      modalWithMenu.previous= function () {
+      modalWithRoutes.previous= function () {
         setActive(currentItem.prev);
       };
 
-      return modalWithMenu;
+      return modalWithRoutes;
 
     },
 
     /**
      *
-     * @param directiveManager an object that provides methods for managing the modal.
+     * @param directiveManager an object that provides methods for managing pages.
      */
     registerDirective: function (directiveManager) {
       navMenuDirective = directiveManager;

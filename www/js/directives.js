@@ -42,7 +42,7 @@ angular.module('starter.directive', [])
 
 }])
 
-.directive('navMenu', ['navigatingMenu', '$compile', '$rootScope', function (navigatingMenu, $compile, $rootScope) {
+.directive('navMenu', ['navigatingMenu', '$compile', function (navigatingMenu, $compile) {
 
   var template = '<ion-pane ng-repeat="item in menu" ng-show="item.isActive" ng-include="item.url"></ion-pane>';
 
