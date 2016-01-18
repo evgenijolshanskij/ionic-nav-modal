@@ -18,7 +18,8 @@ angular.module('starter.controllers', [])
 
   // Modal service initialization
   var modal = modalViews.initialize({
-    erasable: false,
+    id: 'modal1',
+    erasable: true,
     returnable: true,
     views: [
       {name: 'home', url: 'templates/info-home.html', isActive: true, root: true},
@@ -43,7 +44,25 @@ angular.module('starter.controllers', [])
     modal.previous();
   };
 
-})
+  var modal2 = modalViews.initialize({
+    id: 'modal2',
+    erasable: false,
+    returnable: true,
+    views: [
+      {name: 'home', url: '', isActive: true, root: true}
+    ]
+  });
+
+  $scope.showInfo2 = function () {
+    modal2.show();
+  };
+
+  $scope.closeInfo2 = function () {
+    modal2.close();
+  }
+
+
+  })
 
 .controller('PlaylistsCtrl', function($scope) {
   $scope.playlists = [

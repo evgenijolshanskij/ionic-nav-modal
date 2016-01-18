@@ -18,6 +18,7 @@ angular.module('starter.directives', [])
 
 
     var handler = {
+      id: element.attr('id'),
       show: function () {
         $animate.removeClass(pane, 'ng-hide');
       },
@@ -51,18 +52,30 @@ angular.module('starter.directives', [])
 
 .directive('navMenu', ['modalViews', '$compile', function (modalViews, $compile) {
 
-  var template = '<ion-pane ng-repeat="item in menu" ng-show="item.isActive" ng-include="item.url"></ion-pane>';
-
   var link = function (scope, element) {
 
-    scope.menu = [];
+    /*
+      Finds first parent eModal directive and returns its id.
+     */
+    var findId = function (el) {
+      return (el.parent()[0].tagName.toLowerCase() === 'e-modal') ? el.parent().attr('id') : findId(el.parent());
+    };
+
+    // Gets id.
+    var id = findId(element);
+    // Creates template to be compiled.
+    var template = '<ion-pane ng-repeat="item in menu_' + id + '" ng-show="item.isActive" ng-include="item.url"></ion-pane>';
+    element.append($compile(template)(scope));
+
+    // Creates unique array variable with views.
+    scope['menu_' + id] = [];
 
     var handler = {
-      isEmptyMenu: function () {
-        return scope.menu.length === 0;
+      isEmptyMenu: function (id) {
+        return (scope['menu_' + id] !== undefined) ? scope['menu_' + id].length === 0 : false;
       },
-      updateMenu: function (menu) {
-        scope.menu = menu;
+      updateMenu: function (id, menu) {
+        scope['menu_' + id] = menu;
       },
       recompile: function () {
         element.empty();
@@ -77,8 +90,6 @@ angular.module('starter.directives', [])
   return {
     require: '^eModal',
     restrict: 'E',
-    transclude: true,
-    template: template,
     link: link
   }
 

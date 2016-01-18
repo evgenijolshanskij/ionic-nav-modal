@@ -12,6 +12,9 @@
         <button class="button button-icon button-clear" ng-click="showInfo()">
           <i class="icon ion-information-circled"></i>
         </button>
+        <button class="button button-icon button-clear" ng-click="showInfo2()">
+          <i class="icon ion-information-circled"></i>
+        </button>
       </ion-nav-buttons>
     </ion-nav-bar>
     <ion-nav-view name="menuContent"></ion-nav-view>
@@ -33,6 +36,14 @@
     </ion-content>
   </ion-side-menu>
 </ion-side-menus>
-<e-modal>
+<e-modal id="modal1">
   <nav-menu></nav-menu>
+</e-modal>
+<e-modal id="modal2">
+  <ion-header-bar class="transparent-nav" style="background: #c1c1c1;">
+    <button ng-click="closeInfo2()" class="button pull-right ion-close-round circle-exit"></button>
+  </ion-header-bar>
+  <ion-content>
+    <div>Empty Modal...</div>
+  </ion-content>
 </e-modal>
