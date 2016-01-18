@@ -4,27 +4,32 @@ angular.module('starter.directives', [])
  * Directive renders container template for modal content.
  * Works along with the navigableModal service.
  */
-.directive('eModal', ['customModal', function (customModal) {
+.directive('eModal', ['customModal', '$animate', '$timeout', function (customModal, $animate, $timeout) {
 
-  var template = '<ion-pane ng-hide="hidden" class="menu-animation ng-hide"></ion-pane>';
+  var template = '<ion-pane class="menu-animation ng-hide"></ion-pane>';
 
   var link = function (scope, element, attrs, ctrl, transclude) {
+
+    var pane = element.find('ion-pane');
 
     transclude(scope, function (clone) {
       angular.element(element.children()[0]).append(clone);
     });
 
-    scope.hidden = true;
 
     var handler = {
       show: function () {
-        scope.hidden = false;
+        $animate.removeClass(pane, 'ng-hide');
       },
       close: function () {
-        scope.hidden = true;
+        $animate.addClass(pane, 'hiding');
+        $timeout(function () {
+          pane.addClass('ng-hide');
+          pane.removeClass('hiding');
+        }, 400);
       },
       isHidden: function () {
-        return (scope.hidden === undefined) ? true : scope.hidden;
+        return !pane.hasClass('ng-hide');
       }
     };
 

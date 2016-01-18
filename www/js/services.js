@@ -100,7 +100,7 @@ angular.module('starter.services', [])
         modalWithViews = {},
         currentItem,
         root,
-        customModal = customModal.initialize({
+        cModal = customModal.initialize({
           afterClosed: function () {
             // Time is needed window to be closed
             $timeout(function () {
@@ -133,11 +133,11 @@ angular.module('starter.services', [])
 
       modalWithViews.show = function () {
         if (directive.isEmptyMenu()) directive.updateMenu(views);
-        customModal.show();
+        cModal.show();
       };
 
       modalWithViews.close = function () {
-        customModal.close();
+        cModal.close();
       };
 
       modalWithViews.activateMenu = function (name) {
