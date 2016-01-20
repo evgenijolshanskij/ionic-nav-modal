@@ -8,5 +8,6 @@
 .menu-animation.ng-hide {
   -webkit-transform: translate3d(0%, -100%, 0px);
   -moz-transform: translate3d(0%, -100%, 0px);
+  -o-transform: translate3d(0%, -100%, 0px);
   transform: translate3d(0%, -100%, 0px);
 }

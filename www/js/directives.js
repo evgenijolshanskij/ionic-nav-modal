@@ -56,6 +56,7 @@ angular.module('starter.directives', [])
     scope[menus] = [];
 
     var handler = {
+      id: element.attr('id'),
       isEmptyMenu: function (id) {
         return (scope[menus] !== undefined) ? scope[menus].length === 0 : false;
       },

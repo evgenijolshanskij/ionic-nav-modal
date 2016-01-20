@@ -196,7 +196,7 @@ angular.module('starter.services', [])
       var notExists = true;
       // Looking for the modal with the same id as the directive has.
       angular.forEach(multiViewModals, function (modal) {
-        if (modal.id === handler.id) {
+        if (modal.cModal.id === handler.id) {
           // Binds directive to the modal instance.
           modal.directive = handler;
           notExists = false;
