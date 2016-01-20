@@ -1,6 +1,6 @@
 angular.module('starter.controllers', [])
 
-.controller('AppCtrl', function($scope, $timeout, modalViews) {
+.controller('AppCtrl', function($scope, $timeout, multiViewModal, customModal) {
 
   // Form data for the login modal
   $scope.loginData = {};
@@ -17,7 +17,7 @@ angular.module('starter.controllers', [])
   };
 
   // Modal service initialization
-  var modal = modalViews.initialize({
+  var multiPageModal = multiViewModal.initialize({
     id: 'modal1',
     erasable: true,
     returnable: true,
@@ -29,36 +29,31 @@ angular.module('starter.controllers', [])
   });
 
   $scope.showInfo = function(){
-    modal.show();
+    multiPageModal.show();
   };
 
   $scope.closeInfo = function () {
-    modal.close();
+    multiPageModal.close();
   };
 
   $scope.activateMenu = function (name) {
-    modal.activateMenu(name);
+    multiPageModal.activateMenu(name);
   };
 
   $scope.previous = function () {
-    modal.previous();
+    multiPageModal.previous();
   };
 
-  var modal2 = modalViews.initialize({
-    id: 'modal2',
-    erasable: false,
-    returnable: true,
-    views: [
-      {name: 'home', url: '', isActive: true, root: true}
-    ]
+  var simpleModal = customModal.initialize({
+    id: 'modal2'
   });
 
   $scope.showInfo2 = function () {
-    modal2.show();
+    simpleModal.show();
   };
 
   $scope.closeInfo2 = function () {
-    modal2.close();
+    simpleModal.close();
   }
 
 

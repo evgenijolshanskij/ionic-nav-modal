@@ -4,33 +4,28 @@ angular.module('starter.directives', [])
  * Directive renders container template for modal content.
  * Works along with the navigableModal service.
  */
-.directive('eModal', ['customModal', '$animate', '$timeout', function (customModal, $animate, $timeout) {
-
-  var template = '<ion-pane class="menu-animation ng-hide"></ion-pane>';
+.directive('cModal', ['customModal', '$compile', function (customModal, $compile) {
 
   var link = function (scope, element, attrs, ctrl, transclude) {
 
-    var pane = element.find('ion-pane');
+    var ngHideBinder = "hidden_" + attrs.id;
+    scope[ngHideBinder] = true;
 
-    transclude(scope, function (clone) {
-      angular.element(element.children()[0]).append(clone);
+    transclude(function (clone) {
+      var wrapper = $compile('<ion-pane ng-hide="' + ngHideBinder + '" class="menu-animation ng-hide"></ion-pane>')(scope);
+      element.append(wrapper.append(clone));
     });
-
 
     var handler = {
       id: element.attr('id'),
       show: function () {
-        $animate.removeClass(pane, 'ng-hide');
+        scope[ngHideBinder] = false;
       },
       close: function () {
-        $animate.addClass(pane, 'hiding');
-        $timeout(function () {
-          pane.addClass('ng-hide');
-          pane.removeClass('hiding');
-        }, 400);
+        scope[ngHideBinder] = true;
       },
       isHidden: function () {
-        return !pane.hasClass('ng-hide');
+        return scope[ngHideBinder];
       }
     };
 
@@ -38,57 +33,47 @@ angular.module('starter.directives', [])
 
   };
 
-  var controller = function ($scope) {};
-
   return {
     restrict: 'E',
-    template: template,
     transclude: true,
-    link: link,
-    controller: ['$scope', controller]
+    link: link
   }
 
 }])
 
-.directive('navMenu', ['modalViews', '$compile', function (modalViews, $compile) {
+.directive('navMenu', ['multiViewModal', '$compile', function (multiViewModal, $compile) {
 
-  var link = function (scope, element) {
+  var link = function (scope, element, attrs) {
 
-    /*
-      Finds first parent eModal directive and returns its id.
-     */
-    var findId = function (el) {
-      return (el.parent()[0].tagName.toLowerCase() === 'e-modal') ? el.parent().attr('id') : findId(el.parent());
-    };
+    var menus = 'menu_' + attrs.id;
 
-    // Gets id.
-    var id = findId(element);
-    // Creates template to be compiled.
-    var template = '<ion-pane ng-repeat="item in menu_' + id + '" ng-show="item.isActive" ng-include="item.url"></ion-pane>';
-    element.append($compile(template)(scope));
+    var menusTemplate = '<ion-pane ng-repeat="item in ' + menus + '" ng-show="item.isActive" ng-include="item.url"></ion-pane>';
+    var customModal = $compile(
+      '<c-modal id="' + attrs.id + '">' + menusTemplate + '</c-modal>')(scope);
+    element.replaceWith(customModal);
 
     // Creates unique array variable with views.
-    scope['menu_' + id] = [];
+    scope[menus] = [];
 
     var handler = {
       isEmptyMenu: function (id) {
-        return (scope['menu_' + id] !== undefined) ? scope['menu_' + id].length === 0 : false;
+        return (scope[menus] !== undefined) ? scope[menus].length === 0 : false;
       },
       updateMenu: function (id, menu) {
-        scope['menu_' + id] = menu;
+        scope[menus] = menu;
       },
       recompile: function () {
-        element.empty();
-        element.append($compile(template)(scope));
+        var pane = angular.element(customModal.children()[0]);
+        pane.empty();
+        pane.append($compile(menusTemplate)(scope));
       }
     };
 
-    modalViews.registerDirective(handler);
+    multiViewModal.registerDirective(handler);
 
   };
 
   return {
-    require: '^eModal',
     restrict: 'E',
     link: link
   }

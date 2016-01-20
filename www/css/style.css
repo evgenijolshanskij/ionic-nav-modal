@@ -1,50 +1,12 @@
-.menu-animation.hiding-add, .menu-animation.ng-hide-remove {
+.menu-animation {
   -webkit-transition: all linear 0.5s;
   -moz-transition: all linear 0.5s;
   -o-transition: all linear 0.5s;
   transition: all linear 0.5s;
 }
 
-.menu-animation.ng-hide-remove-active {
-  -webkit-animation: 0.5s show;
-  -moz-animation: 0.5s show;
-  -o-animation: 0.5s show;
-  animation: 0.5s show;
-}
-
-@keyframes show {
-  0% {
-    -webkit-transform: translate3d(0%, -100%, 0px);
-    -moz-transform: translate3d(0%, -100%, 0px);
-    -o-transform: translate3d(0%, -100%, 0px);
-    transform: translate3d(0%, -100%, 0px);
-  }
-  100% {
-    -webkit-transform: translate3d(0%, 0%, 0px);
-    -moz-transform: translate3d(0%, 0%, 0px);
-    -o-transform: translate3d(0%, 0%, 0px);
-    transform: translate3d(0%, 0%, 0px);
-  }
-}
-
-.menu-animation.hiding-add-active {
-  -webkit-animation: 0.5s hide;
-  -moz-animation: 0.5s hide;
-  -o-animation: 0.5s hide;
-  animation: 0.5s hide;
-}
-
-@keyframes hide {
-  0% {
-    -webkit-transform: translate3d(0%, 0%, 0px);
-    -moz-transform: translate3d(0%, 0%, 0px);
-    -o-transform: translate3d(0%, 0%, 0px);
-    transform: translate3d(0%, 0%, 0px);
-  }
-  100% {
-    -webkit-transform: translate3d(0%, -100%, 0px);
-    -moz-transform: translate3d(0%, -100%, 0px);
-    -o-transform: translate3d(0%, -100%, 0px);
-    transform: translate3d(0%, -100%, 0px);
-  }
+.menu-animation.ng-hide {
+  -webkit-transform: translate3d(0%, -100%, 0px);
+  -moz-transform: translate3d(0%, -100%, 0px);
+  transform: translate3d(0%, -100%, 0px);
 }
