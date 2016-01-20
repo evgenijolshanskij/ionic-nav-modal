@@ -106,7 +106,8 @@ angular.module('starter.services', [])
  */
 .factory('multiViewModal', ['customModal', '$timeout', function (customModal, $timeout) {
 
-  var directive;
+  // Array holds all modal instances.
+  var multiViewModals = [];
 
   return {
 
@@ -115,25 +116,26 @@ angular.module('starter.services', [])
      * to pass html pages and their routes.
      *
      * @param options an object with parameters.
-     * @returns {{modal}} object.
+     * @returns {{modal}} instance.
      */
     initialize: function (options) {
 
-      /* Variables initialization */
-      var viewHolder = {};
-      viewHolder.id = options.id;
-      viewHolder.views = options.views;
-      viewHolder.erasable = options.erasable;
-      viewHolder.returnable = options.returnable;
-      viewHolder.customModal = customModal.initialize({
+      var afterClosed = function (modalInstance) {
+        // Time is needed window to be closed
+        $timeout(function () {
+          if (modalInstance.erasable) modalInstance.directive.recompile();
+          if (modalInstance.returnable) setActive(modalInstance.root.name, modalInstance);
+        }, 500);
+      };
+
+      // Modal instance initializing.
+      var multiViewModal = {};
+      multiViewModal.views = options.views;
+      multiViewModal.erasable = options.erasable;
+      multiViewModal.returnable = options.returnable;
+      multiViewModal.cModal = customModal.initialize({
         id: options.id,
-        afterClosed: function () {
-          // Time is needed window to be closed
-          $timeout(function () {
-            if (viewHolder.erasable) directive.recompile();
-            if (viewHolder.returnable) setActive(viewHolder.root.name, viewHolder);
-          }, 500);
-        }
+        afterClosed: function () { afterClosed(multiViewModal) }
       });
 
       /* Finds root page */
@@ -144,7 +146,7 @@ angular.module('starter.services', [])
         });
         return matched;
       };
-      viewHolder.root = findRoot();
+      multiViewModal.root = findRoot();
 
       /* Sets page as active */
       function setActive(name, modal) {
@@ -154,37 +156,56 @@ angular.module('starter.services', [])
             item.isActive = true;
           } else item.isActive = false;
         });
-        directive.updateMenu(modal.id, modal.views);
+        multiViewModal.directive.updateMenu(modal.id, modal.views);
       }
 
-      viewHolder.show = function () {
-        if (directive.isEmptyMenu(this.id)) directive.updateMenu(this.id, this.views);
-        directive.updateMenu(this.id, this.views);
-        this.customModal.show();
+      /* Method provided to user that triggers opening modal event */
+      multiViewModal.show = function () {
+        if (this.directive.isEmptyMenu(this.id)) this.directive.updateMenu(this.id, this.views);
+        this.directive.updateMenu(this.id, this.views);
+        this.cModal.show();
       };
 
-      viewHolder.close = function () {
-        this.customModal.close();
+      /* Method provided to user that triggers closing modal event */
+      multiViewModal.close = function () {
+        this.cModal.close();
       };
 
-      viewHolder.activateMenu = function (name) {
+      /* Method provided to user that activates view with the name has been passed */
+      multiViewModal.activateMenu = function (name) {
         setActive(name, this);
       };
 
-      viewHolder.previous= function () {
+      /* Method provided to user that returns previous view inside modal */
+      multiViewModal.previous= function () {
         setActive(this.currentItem.prev, this);
       };
 
-      return viewHolder;
+      // Adds modal to the array with the other modals.
+      multiViewModals.push(multiViewModal);
+
+      return multiViewModal;
 
     },
 
     /**
-     *
-     * @param handler an object that provides methods for managing pages.
+     * Function is used by bound directive to be registered within appropriate modal instance.
+     * @param handler an object that provides methods for managing the directive.
      */
     registerDirective: function (handler) {
-      directive = handler;
+      var notExists = true;
+      // Looking for the modal with the same id as the directive has.
+      angular.forEach(multiViewModals, function (modal) {
+        if (modal.id === handler.id) {
+          // Binds directive to the modal instance.
+          modal.directive = handler;
+          notExists = false;
+        }
+      });
+      // If there is no modals with the same id the directive has TypeError is thrown.
+      if (notExists) throw new TypeError('Modal with such id (id: ' + handler.id + ') is not exists. ' +
+      'Please, initialize one in the controller.');
+
     }
 
   }

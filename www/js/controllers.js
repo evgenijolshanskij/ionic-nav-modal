@@ -19,7 +19,7 @@ angular.module('starter.controllers', [])
   // Modal service initialization
   var multiPageModal = multiViewModal.initialize({
     id: 'modal1',
-    erasable: true,
+    erasable: false,
     returnable: true,
     views: [
       {name: 'home', url: 'templates/info-home.html', isActive: true, root: true},
