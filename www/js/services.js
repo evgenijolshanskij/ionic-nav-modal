@@ -17,6 +17,10 @@ angular.module('starter.services', [])
      */
     initialize: function (options) {
 
+      // Checks whether modal id has been passed
+      if (options.id === undefined) throw new Error('"id" option is required. ' +
+        'Here is an example of valid modal initializing: ' +
+        'var modal = customModal.initialize({id: \'your_modal_id\'});');
       // Checks whether any modal with such id is already exists.
       // If so throws TypeError.
       angular.forEach(modals, function (modal) {
@@ -130,9 +134,13 @@ angular.module('starter.services', [])
 
       // Modal instance initializing.
       var multiViewModal = {};
+      // Gets the list of html pages to be shown.
       multiViewModal.views = options.views;
-      multiViewModal.erasable = options.erasable;
-      multiViewModal.returnable = options.returnable;
+      // Whether modal should erase inputs after is being closed.
+      multiViewModal.erasable = options.erasable || true;
+      // Whether modal should go back to the root page after is being closed.
+      multiViewModal.returnable = options.returnable || true;
+      // Adds customModal instance.
       multiViewModal.cModal = customModal.initialize({
         id: options.id,
         afterClosed: function () { afterClosed(multiViewModal) }
