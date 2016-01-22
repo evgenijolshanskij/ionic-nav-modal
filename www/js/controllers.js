@@ -44,6 +44,7 @@ angular.module('starter.controllers', [])
     multiPageModal.previous();
   };
 
+  // Modal service initialization.
   var simpleModal = customModal.initialize({
     id: 'modal2'
   });

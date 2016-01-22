@@ -1,60 +1,73 @@
 angular.module('starter.services', [])
 
 /**
- * Service created for managing the modal window rendered by cModal directive.
- * Provides object with functions for opening and closing the modal.
+ * Provides an object that is represent a modal instance.
  */
-.factory('customModal', ['$ionicPlatform', '$ionicHistory', '$state', function ($ionicPlatform, $ionicHistory, $state) {
+.factory('customModal', ['$ionicPlatform', '$ionicHistory', '$state',
+    function ($ionicPlatform, $ionicHistory, $state) {
 
-  // Array holds all modal instances.
+  // Container to hold all modal instances that will be created.
   var modals = [];
 
   return {
     /**
-     * Function for initializing modal in the controller
-     * @param options an object with options for modal
-     * @returns {{modal}} instance
+     * Creates new modal instance.
+     *
+     * @param   options   set of parameters needed for the modal to be created
+     * @returns {{modal}} an object represented modal dialog window
      */
     initialize: function (options) {
 
-      // Checks whether modal id has been passed
+      // Checks whether modal id has been passed.
       if (options.id === undefined) throw new Error('"id" option is required. ' +
         'Here is an example of valid modal initializing: ' +
-        'var modal = customModal.initialize({id: \'your_modal_id\'});');
+        'var modal = customModal.initialize({id: "your_modal_id"});');
       // Checks whether any modal with such id is already exists.
-      // If so throws TypeError.
+      // If so, throws TypeError.
       angular.forEach(modals, function (modal) {
-        if (modal.id === options.id) throw new TypeError('Modal with such id (id: ' + modal.id + ') is already exists');
+        if (modal.id === options.id) throw new TypeError('Modal with such id' +
+          '(id: ' + modal.id + ') is already exists');
       });
 
-      // Modal instance initializing.
+      // Start of the modal instance initialization process.
       var modal = {};
+      // Callback function that is being invoked before modal is opened.
       modal.beforeOpened = options.beforeOpened || function (){};
+      // Callback function that is being invoked after modal is opened.
       modal.afterOpened = options.afterOpened || function (){};
+      // Callback function that is being invoked before modal is closed.
       modal.beforeClosed = options.beforeClosed || function (){};
+      // Callback function that is being invoked after modal is closed.
       modal.afterClosed = options.afterClosed || function (){};
+      // Modal id that matches the id of html element.
       modal.id = options.id;
 
-      /* Global go back event implementation */
+      /**
+       * Global `go back` event implementation.
+       */
       var myGoBack = function() {
         $ionicHistory.goBack();
       };
 
-      /* Hardware back button handler */
+      /**
+       * Hardware `back` button handler.
+       */
       $ionicPlatform.registerBackButtonAction(function () {
         var wasOpened = false;
         angular.forEach(modals, function (modal) {
+          // Checks whether modal is opened.
           if (modal.directive !== undefined && !modal.directive.isHidden()) {
-            // Close info view if it is opened
+            // Closes info view if it is opened.
             modal.close();
-            // In order to trigger modal hiding, state changing is simulated
+            // In order to trigger modal hiding, state changing is simulated.
             $state.go($state.current.name);
             wasOpened = true;
           }
         });
         if (!wasOpened) {
+          // Checks if there is way back or not.
           if ($ionicHistory.viewHistory().currentView.backViewId === null) {
-            // Quit app if there is no way back
+            // Quits app if there is no way back.
             ionic.Platform.exitApp();
           } else {
             myGoBack();
@@ -62,14 +75,18 @@ angular.module('starter.services', [])
         }
       }, 1000);
 
-      /* Method provided to user that triggers opening modal event */
+      /**
+       * Triggers opening modal event.
+       */
       modal.show = function () {
         this.beforeOpened();
         this.directive.show();
         this.afterOpened();
       };
 
-      /* Method provided to user that triggers closing modal event */
+      /**
+       * Triggers closing modal event.
+       */
       modal.close = function () {
         this.beforeClosed();
         this.directive.close();
@@ -84,7 +101,8 @@ angular.module('starter.services', [])
     },
 
     /**
-     * Function is used by bound directive to be registered within appropriate modal instance.
+     * Binds directive within appropriate modal instance.
+     *
      * @param handler an object that provides methods for managing the directive.
      */
     registerDirective: function (handler) {
@@ -98,55 +116,67 @@ angular.module('starter.services', [])
         }
       });
       // If there is no modals with the same id the directive has TypeError is thrown.
-      if (notExists) throw new TypeError('Modal with such id (id: ' + handler.id + ') is not exists. ' +
-      'Please, initialize one in the controller.');
+      if (notExists) throw new TypeError('Modal with such id' +
+        '(id: ' + handler.id + ') is not exists. ' +
+        'Please, initialize one in the controller.');
     }
   }
 
 }])
 
 /**
- * Service for managing pages inside cModal rendered by navMenu directive.
+ * Provides an object that is represent a modal instance.
+ *
+ * The modal that is provided by this service allows to create multiple
+ * views inside and navigate between them.
  */
 .factory('multiViewModal', ['customModal', '$timeout', function (customModal, $timeout) {
 
-  // Array holds all modal instances.
+    // Container to hold all modal instances that will be created.
   var multiViewModals = [];
 
   return {
 
     /**
-     * This function will be called first in a controller
-     * to pass html pages and their routes.
+     * Creates new modal instance.
      *
-     * @param options an object with parameters.
-     * @returns {{modal}} instance.
+     * @param   options   set of parameters needed for the modal to be created
+     * @returns {{modal}} an object represented modal dialog window
      */
     initialize: function (options) {
 
       var afterClosed = function (modalInstance) {
-        // Time is needed window to be closed
+        // According to the .menu-animation css class,
+        // time is needed window to be closed is 0.5s.
+        // Thus, all actions connected with the modal DOM manipulation
+        // should be done after the animation is completed.
+        // In this case functions invokes 0.1s earlier to have all done
+        // if it is decided to open the modal immediately just after it is being closed.
         $timeout(function () {
           if (modalInstance.erasable) modalInstance.directive.recompile();
           if (modalInstance.returnable) setActive(modalInstance.root.name, modalInstance);
-        }, 500);
+        }, 400);
       };
 
-      // Modal instance initializing.
+      // Start of the modal instance initialization process.
       var multiViewModal = {};
       // Gets the list of html pages to be shown.
       multiViewModal.views = options.views;
-      // Whether modal should erase inputs after is being closed.
+      // Whether inputs in modal should be erased after it is being closed.
       multiViewModal.erasable = options.erasable || true;
-      // Whether modal should go back to the root page after is being closed.
+      // Whether modal should go back to the root page after it is being closed.
       multiViewModal.returnable = options.returnable || true;
-      // Adds customModal instance.
+      // Adds `customModal` instance.
       multiViewModal.cModal = customModal.initialize({
         id: options.id,
         afterClosed: function () { afterClosed(multiViewModal) }
       });
 
-      /* Finds root page */
+      /**
+       * Finds root page.
+       *
+       * @returns {matched} an object that represents root page
+       */
       var findRoot = function() {
         var matched = undefined;
         angular.forEach(options.views, function (v) {
@@ -156,7 +186,12 @@ angular.module('starter.services', [])
       };
       multiViewModal.root = findRoot();
 
-      /* Sets page as active */
+      /**
+       * Sets page as active.
+       *
+       * @param name  string with a name of the page
+       * @param modal the modal instance
+       */
       function setActive(name, modal) {
         angular.forEach(modal.views, function (item) {
           if (item.name === name) {
@@ -167,24 +202,34 @@ angular.module('starter.services', [])
         multiViewModal.directive.updateMenu(modal.id, modal.views);
       }
 
-      /* Method provided to user that triggers opening modal event */
+      /**
+       * Triggers opening modal event.
+       */
       multiViewModal.show = function () {
         if (this.directive.isEmptyMenu(this.id)) this.directive.updateMenu(this.id, this.views);
         this.directive.updateMenu(this.id, this.views);
         this.cModal.show();
       };
 
-      /* Method provided to user that triggers closing modal event */
+      /**
+       * Triggers closing modal event.
+       */
       multiViewModal.close = function () {
         this.cModal.close();
       };
 
-      /* Method provided to user that activates view with the name has been passed */
+      /**
+       * Activates view with the name that has been passed.
+       *
+       * @param name string with a name of the page
+       */
       multiViewModal.activateMenu = function (name) {
         setActive(name, this);
       };
 
-      /* Method provided to user that returns previous view inside modal */
+      /**
+       * Sets previous view inside the modal as active.
+       */
       multiViewModal.previous= function () {
         setActive(this.currentItem.prev, this);
       };
@@ -197,7 +242,8 @@ angular.module('starter.services', [])
     },
 
     /**
-     * Function is used by bound directive to be registered within appropriate modal instance.
+     * Binds directive within appropriate modal instance.
+     *
      * @param handler an object that provides methods for managing the directive.
      */
     registerDirective: function (handler) {
@@ -211,8 +257,9 @@ angular.module('starter.services', [])
         }
       });
       // If there is no modals with the same id the directive has TypeError is thrown.
-      if (notExists) throw new TypeError('Modal with such id (id: ' + handler.id + ') is not exists. ' +
-      'Please, initialize one in the controller.');
+      if (notExists) throw new TypeError('Modal with such id' +
+        '(id: ' + handler.id + ') is not exists. ' +
+        'Please, initialize one in the controller.');
 
     }
 

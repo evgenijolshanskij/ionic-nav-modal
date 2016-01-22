@@ -1,7 +1,7 @@
 angular.module('starter.directives', [])
 
 /**
- * Directive renders modal container template and wraps its content.
+ * Renders modal container template and wraps its content.
  */
 .directive('cModal', ['customModal', '$compile', function (customModal, $compile) {
 
@@ -12,7 +12,10 @@ angular.module('starter.directives', [])
     scope[ngHideBinder] = true;
 
     transclude(function (clone) {
-      var wrapper = $compile('<ion-pane ng-hide="' + ngHideBinder + '" class="menu-animation ng-hide"></ion-pane>')(scope);
+      var wrapper = $compile(
+        '<ion-pane ng-hide="' + ngHideBinder + '" class="menu-animation ng-hide">' +
+        '</ion-pane>'
+      )(scope);
       // Appends wrapper element and content of the directive.
       element.append(wrapper.append(clone));
     });
