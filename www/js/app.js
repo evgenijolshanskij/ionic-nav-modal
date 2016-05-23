@@ -75,14 +75,23 @@ Array.prototype.findById = function (id) {
 
 };
 
-Array.prototype.isSatisfied = function (predicate) {
-  console.log('predicate: ');
+Array.prototype.findByActivity = function () {
   var self = this;
   if (self === null) throw new TypeError('Array.prototype.find called on null or undefined');
 
-  console.log(self);
   for (var i = 0; i < self.length; i++) {
-    console.log(predicate.call(self[i]));
+    if (self[i].isActive) return self[i];
+  }
+
+  return undefined;
+
+};
+
+Array.prototype.isSatisfied = function (predicate) {
+  var self = this;
+  if (self === null) throw new TypeError('Array.prototype.find called on null or undefined');
+
+  for (var i = 0; i < self.length; i++) {
     if (predicate.call(self, self[i])) return self[i];
   }
 
