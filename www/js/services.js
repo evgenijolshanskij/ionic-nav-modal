@@ -8,118 +8,118 @@ angular.module('starter.services', [])
 
   // Container to hold all modal instances that will be created.
   var modals = [];
+  var speed = 1000;
+  registerBackButtonAction();
 
   return {
-    /**
-     * Creates new modal instance.
-     *
-     * @param   options   set of parameters needed for the modal to be created
-     * @returns {{modal}} an object represented modal dialog window
-     */
-    initialize: function (options) {
+    get:                get,
+    registerDirective:  registerDirective
+  };
 
-      // Checks whether modal id has been passed.
+  //////////////////////////////////
+
+  function registerBackButtonAction() {
+    /**
+     * Hardware `back` button handler.
+     */
+    $ionicPlatform.registerBackButtonAction(registration, speed);
+
+    function predicate(modal) {
+      return modal && modal.directiveHandler && !modal.directiveHandler.isHidden();
+    }
+
+    function registration() {
+      var modal = modals.isSatisfied(predicate);
+      if (modal) {
+        // Closes info view if it is opened.
+        modal.close();
+        // In order to trigger modal hiding, state changing is simulated.
+        $state.go($state.current.name);
+      } else {
+        // Checks if there is way back or not.
+        if ($ionicHistory.viewHistory().currentView.backViewId === null) {
+          // Quits app if there is no way back.
+          ionic.Platform.exitApp();
+        } else {
+          $ionicHistory.goBack();
+        }
+      }
+    }
+  }
+
+  /**
+   * Creates new modal instance.
+   *
+   * @param   options   set of parameters needed for the modal to be created
+   * @returns {{modal}} an object represented modal dialog window
+   */
+  function get(options) {
+
+    checkId();
+
+    var modal =  {
+      id:           options.id,
+      beforeOpened: initCallback('beforeOpened'),
+      afterOpened:  initCallback('afterOpened'),
+      beforeClosed: initCallback('beforeClosed'),
+      afterClosed:  initCallback('afterClosed'),
+      show:         show,
+      close:        close
+    };
+    // Adds modal to the array with the other modals.
+    modals.push(modal);
+    return modal;
+
+    /**
+     * Checks whether modal id has been passed.
+     */
+    function checkId() {
       if (options.id === undefined) throw new Error('"id" option is required. ' +
         'Here is an example of valid modal initializing: ' +
         'var modal = customModal.initialize({id: "your_modal_id"});');
-      // Checks whether any modal with such id is already exists.
-      // If so, throws TypeError.
-      angular.forEach(modals, function (modal) {
-        if (modal.id === options.id) throw new TypeError('Modal with such id' +
-          '(id: ' + modal.id + ') is already exists');
-      });
-
-      // Start of the modal instance initialization process.
-      var modal = {};
-      // Callback function that is being invoked before modal is opened.
-      modal.beforeOpened = options.beforeOpened || function (){};
-      // Callback function that is being invoked after modal is opened.
-      modal.afterOpened = options.afterOpened || function (){};
-      // Callback function that is being invoked before modal is closed.
-      modal.beforeClosed = options.beforeClosed || function (){};
-      // Callback function that is being invoked after modal is closed.
-      modal.afterClosed = options.afterClosed || function (){};
-      // Modal id that matches the id of html element.
-      modal.id = options.id;
-
-      /**
-       * Global `go back` event implementation.
-       */
-      var myGoBack = function() {
-        $ionicHistory.goBack();
-      };
-
-      /**
-       * Hardware `back` button handler.
-       */
-      $ionicPlatform.registerBackButtonAction(function () {
-        var wasOpened = false;
-        angular.forEach(modals, function (modal) {
-          // Checks whether modal is opened.
-          if (modal.directive !== undefined && !modal.directive.isHidden()) {
-            // Closes info view if it is opened.
-            modal.close();
-            // In order to trigger modal hiding, state changing is simulated.
-            $state.go($state.current.name);
-            wasOpened = true;
-          }
-        });
-        if (!wasOpened) {
-          // Checks if there is way back or not.
-          if ($ionicHistory.viewHistory().currentView.backViewId === null) {
-            // Quits app if there is no way back.
-            ionic.Platform.exitApp();
-          } else {
-            myGoBack();
-          }
-        }
-      }, 1000);
-
-      /**
-       * Triggers opening modal event.
-       */
-      modal.show = function () {
-        this.beforeOpened();
-        this.directive.show();
-        this.afterOpened();
-      };
-
-      /**
-       * Triggers closing modal event.
-       */
-      modal.close = function () {
-        this.beforeClosed();
-        this.directive.close();
-        this.afterClosed();
-      };
-
-      // Adds modal to the array with the other modals.
-      modals.push(modal);
-
-      return modal;
-
-    },
+    }
 
     /**
-     * Binds directive within appropriate modal instance.
+     * Callback function initialization.
      *
-     * @param handler an object that provides methods for managing the directive.
+     * @param name callback function name.
+     * @returns {*|Function}
      */
-    registerDirective: function (handler) {
-      var notExists = true;
-      // Looking for the modal with the same id as the directive has.
-      angular.forEach(modals, function (modal) {
-        if (modal.id === handler.id) {
-          // Binds directive to the modal instance.
-          modal.directive = handler;
-          notExists = false;
-        }
-      });
-      // If there is no modals with the same id the directive has TypeError is thrown.
-      if (notExists) throw new TypeError('Modal with such id' +
-        '(id: ' + handler.id + ') is not exists. ' +
-        'Please, initialize one in the controller.');
+    function initCallback(name) {
+      return options[name] || function (){};
     }
+
+    /**
+     * Triggers opening modal event.
+     */
+    function show() {
+      var self = this;
+      self.directiveHandler.show(self.beforeOpened, self.afterOpened);
+    }
+
+    /**
+     * Triggers closing modal event.
+     */
+    function close() {
+      var self = this;
+      self.directiveHandler.close(self.beforeClosed, self.afterClosed);
+    }
+
+  }
+
+  /**
+   * Binds directive within appropriate modal instance.
+   *
+   * @param handler an object that provides methods for managing the directive.
+   */
+  function registerDirective(handler) {
+    // Looking for the modal with the same id as the directive has.
+    var modal = modals.findById(handler.id);
+    if (modal) modal.directiveHandler = handler;
+    // If there is no modals with the same id the directive has TypeError is thrown.
+    else throw new TypeError('Modal with such id' +
+      '(id: ' + handler.id + ') is not exists. ' +
+      'Please, initialize one in the controller.');
   }
 
 }])
@@ -146,16 +146,8 @@ angular.module('starter.services', [])
     initialize: function (options) {
 
       var afterClosed = function (modalInstance) {
-        // According to the .menu-animation css class,
-        // time is needed window to be closed is 0.5s.
-        // Thus, all actions connected with the modal DOM manipulation
-        // should be done after the animation is completed.
-        // In this case functions invokes 0.1s earlier to have all done
-        // if it is decided to open the modal immediately just after it is being closed.
-        $timeout(function () {
-          if (modalInstance.erasable) modalInstance.directive.recompile();
-          if (modalInstance.returnable) setActive(modalInstance.root.name, modalInstance);
-        }, 400);
+        if (modalInstance.erasable) modalInstance.directive.recompile();
+        if (modalInstance.returnable) setActive(modalInstance.root.name, modalInstance);
       };
 
       // Start of the modal instance initialization process.
@@ -167,7 +159,7 @@ angular.module('starter.services', [])
       // Whether modal should go back to the root page after it is being closed.
       multiViewModal.returnable = options.returnable || true;
       // Adds `customModal` instance.
-      multiViewModal.cModal = customModal.initialize({
+      multiViewModal.cModal = customModal.get({
         id: options.id,
         afterClosed: function () { afterClosed(multiViewModal) }
       });

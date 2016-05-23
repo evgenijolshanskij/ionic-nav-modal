@@ -45,7 +45,7 @@ angular.module('starter.controllers', [])
   };
 
   // Modal service initialization.
-  var simpleModal = customModal.initialize({
+  var simpleModal = customModal.get({
     id: 'modal2'
   });
 
