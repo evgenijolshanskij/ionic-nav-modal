@@ -17,17 +17,8 @@ angular.module('starter.controllers', [])
   };
 
   // Modal service initialization
-  var multiPageModal = multiViewModal.get({
-    id: 'modal1',
-    erasable: false,
-    returnable: true,
-    views: [
-      {name: 'home', url: 'templates/info-home.html', isActive: true, root: true},
-      {name: 'section1', url: 'templates/info-section-1.html', parent: 'home'},
-      {name: 'section2', url: 'templates/info-section-2.html', parent: 'home'}
-    ]
-  });
-
+  var multiPageModal = multiViewModal.get('modal1');
+  
   $scope.showInfo = function(){
     multiPageModal.show();
   };
@@ -45,9 +36,7 @@ angular.module('starter.controllers', [])
   };
 
   // Modal service initialization.
-  var simpleModal = customModal.get({
-    id: 'modal2'
-  });
+  var simpleModal = customModal.get('modal2');
 
   $scope.showInfo2 = function () {
     simpleModal.show();

@@ -52,22 +52,20 @@ angular.module('starter.services', [])
   /**
    * Creates new modal instance.
    *
-   * @param   options   set of parameters needed for the modal to be created
+   * @param   id directive's id.
    * @returns {{modal}} an object represented modal dialog window
    */
-  function get(options) {
+  function get(id) {
 
     checkId();
 
     var modal =  {
-      id:           options.id,
-      beforeOpened: initCallback('beforeOpened'),
-      afterOpened:  initCallback('afterOpened'),
-      beforeClosed: initCallback('beforeClosed'),
-      afterClosed:  initCallback('afterClosed'),
+      id:           id,
+      setOptions:   setOptions,
       show:         show,
       close:        close
     };
+    modal.setOptions({});
     // Adds modal to the array with the other modals.
     modals.push(modal);
     return modal;
@@ -76,19 +74,9 @@ angular.module('starter.services', [])
      * Checks whether modal id has been passed.
      */
     function checkId() {
-      if (options.id === undefined) throw new Error('"id" option is required. ' +
+      if (id === undefined) throw new Error('"id" option is required. ' +
         'Here is an example of valid modal initializing: ' +
         'var modal = customModal.initialize({id: "your_modal_id"});');
-    }
-
-    /**
-     * Callback function initialization.
-     *
-     * @param name callback function name.
-     * @returns {*|Function}
-     */
-    function initCallback(name) {
-      return options[name] || function (){};
     }
 
     /**
@@ -96,7 +84,7 @@ angular.module('starter.services', [])
      */
     function show() {
       var self = this;
-      self.directiveHandler.show(self.beforeOpened, self.afterOpened);
+      self.directiveHandler.show(self._beforeOpened, self._afterOpened);
     }
 
     /**
@@ -104,7 +92,26 @@ angular.module('starter.services', [])
      */
     function close() {
       var self = this;
-      self.directiveHandler.close(self.beforeClosed, self.afterClosed);
+      self.directiveHandler.close(self._beforeClosed, self._afterClosed);
+    }
+
+    function setOptions(options) {
+      var self = this;
+      self._beforeOpened  = initCallback(options, 'beforeOpened');
+      self._afterOpened   = initCallback(options, 'afterOpened');
+      self._beforeClosed  = initCallback(options, 'beforeClosed');
+      self._afterClosed   = initCallback(options, 'afterClosed');
+    }
+
+    /**
+     * Callback function initialization.
+     *
+     * @param options options to be applied.
+     * @param name    callback function name.
+     * @returns {*|Function}
+     */
+    function initCallback(options, name) {
+      return options[name] || function (){};
     }
 
   }
@@ -149,28 +156,24 @@ angular.module('starter.services', [])
   /**
    * Creates new modal instance.
    *
-   * @param   options   set of parameters needed for the modal to be created
+   * @param   id        set of parameters needed for the modal to be created
    * @returns {{modal}} an object represented modal dialog window
    */
-  function get(options) {
+  function get(id) {
 
     // Start of the modal instance initialization process.
     var modal = {
-      id:           options.id, // Gets the list of html pages to be shown.
-      views:        options.views, // Whether inputs in modal should be erased after it is being closed.
-      erasable:     options.erasable || true, // Whether modal should go back to the root page after it is being closed.
-      returnable:   options.returnable || true, // Adds `customModal` instance.
-      root:         findRoot(),
+      id:           id,
       show:         show,
       close:        close,
       activateMenu: activateMenu,
       previous:     previous
     };
-    var customModalService = customModal.get({
-      id:           modal.id,
+    modal.customModalService = customModal.get(modal.id);
+    modal.customModalService.setOptions({
       afterClosed:  afterClosed.bind(modal)
     });
-      // Adds modal to the array with the other modals.
+    // Adds modal to the array with the other modals.
     modals.push(modal);
     return modal;
 
@@ -180,36 +183,7 @@ angular.module('starter.services', [])
      */
     function afterClosed() {
       var self = this;
-      if (self.erasable) self.directiveHandler.recompile();
-      if (self.returnable) setActive(self.root.name);
-    }
-
-    /**
-     * Finds root page.
-     *
-     * @returns {matched} an object that represents root page
-     */
-    function findRoot() {
-      var result = undefined;
-      angular.forEach(options.views, function (view) {
-        if (view.root) result = view;
-      });
-      return result;
-    }
-
-    /**
-     * Sets page as active.
-     *
-     * @param name  string with a name of the page
-     */
-    function setActive(name) {
-      angular.forEach(modal.views, function (view) {
-        if (view.name === name)
-          view.isActive = true;
-        else
-          delete view.isActive;
-      });
-      modal.directiveHandler.updateMenu(modal.views);
+      self.directiveHandler.close();
     }
 
     /**
@@ -217,15 +191,15 @@ angular.module('starter.services', [])
      */
     function show() {
       var self = this;
-      self.directiveHandler.updateMenu(self.views);
-      customModalService.show();
+      self.customModalService.show();
     }
 
     /**
      * Triggers closing modal event.
      */
     function close() {
-      customModalService.close();
+      var self = this;
+      self.customModalService.close();
     }
 
     /**
@@ -234,14 +208,16 @@ angular.module('starter.services', [])
      * @param name string with a name of the page
      */
     function activateMenu(name) {
-      setActive(name);
+      var self = this;
+      self.directiveHandler.setActive(name);
     }
 
     /**
      * Sets previous view inside the modal as active.
      */
     function previous() {
-      setActive(modal.views.findByActivity().parent);
+      var self = this;
+      self.directiveHandler.previous();
     }
 
   }

@@ -2,7 +2,7 @@ angular.module('starter.directives', [])
 
 /**
  * Renders modal template.
- * 
+ *
  */
   .directive('customModal', ['customModal', '$compile', '$timeout', function (customModal, $compile, $timeout) {
 
@@ -90,33 +90,95 @@ angular.module('starter.directives', [])
     function link(scope, element, attrs) {
 
       var id = attrs.id;
-      // Creates a variable name for array that holds views.
       var menus = 'menu_' + id;
+      setViews();
+      var options = getOptions();
+
       // Compiles modal content.
       var menusTemplate = '<ion-pane ng-repeat="item in ' + menus + '" ng-show="item.isActive" ng-include="item.url"></ion-pane>';
       var customModalTemplate = '<custom-modal id="' + id + '">' + menusTemplate + '</custom-modal>';
       var customModal = $compile(customModalTemplate)(scope);
       element.replaceWith(customModal);
-      // Creates unique array variable with views.
-      scope[menus] = [];
 
       multiViewModal.registerDirective(handler());
 
-      function handler() {
-        // Object that provides methods for modal visibility handling.
+      /**
+       * Retrieves data from the inner view items
+       * and applies it to the scope.
+       */
+      function setViews() {
+        scope[menus] = [];
+        angular.forEach(element.children(), function (viewItem) {
+          if (viewItem.localName === 'view-item') {
+            var view = {};
+            if (viewItem.attributes['name'])      view.name = viewItem.attributes['name'].value;
+            if (viewItem.attributes['url'])       view.url = viewItem.attributes['url'].value;
+            if (viewItem.attributes['isActive'])  view.isActive = viewItem.attributes['isActive'].value === 'true';
+            if (viewItem.attributes['root'])      view.root = viewItem.attributes['root'].value === 'true';
+            if (viewItem.attributes['parent'])    view.parent = viewItem.attributes['parent'].value;
+            scope[menus].push(view);
+          }
+        });
+      }
+
+      /**
+       * Reads the option attributes.
+       *
+       * @returns options object.
+       */
+      function getOptions() {
         return {
-          id:           id,
-          isEmptyMenu:  isEmptyMenu,  // Shows whether array is initialized.
-          updateMenu:   updateMenu,   // Updates views array
-          recompile:    recompile     // Clears modal's content.
+          // Stores the root view.
+          root:       findRoot(),
+          // Determines if all data should be erased after modal is closed.
+          erasable:   validateBoolean(attrs.erasable),
+          // Determines if the root view will be set as active after modal is closed.
+          returnable: validateBoolean(attrs.returnable)
         };
 
-        function isEmptyMenu() {
-          return (scope[menus]) ? scope[menus].length === 0 : false;
+        function validateBoolean(value) {
+          if (value) return value === 'true';
+          return true;
         }
 
-        function updateMenu(menu) {
-          scope[menus] = menu;
+        function findRoot() {
+          var result = undefined;
+          angular.forEach(scope[menus], function (view) {
+            if (view.root) result = view;
+          });
+          return result;
+        }
+      }
+
+      /**
+       * Creates a handler to run the directive.
+       *
+       * @returns directive handler.
+       */
+      function handler() {
+        return {
+          id:           id,
+          setActive:    setActive,    // Finds view and sets as active
+          previous:     previous,     // Returns to the parent view
+          close:        close         // Needs to be invoked after modal is closed
+        };
+
+        function setActive(name) {
+          angular.forEach(scope[menus], function (view) {
+            if (view.name === name)
+              view.isActive = true;
+            else
+              delete view.isActive;
+          });
+        }
+
+        function previous() {
+          setActive(scope[menus].findByActivity().parent)
+        }
+
+        function close() {
+          if (options.erasable) recompile();
+          if (options.returnable) setActive(options.root.name);
         }
 
         function recompile() {
