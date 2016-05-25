@@ -4,9 +4,7 @@ angular.module('starter.directives', [])
  * Renders modal template.
  *
  */
-  .directive('customModal', ['customModal', '$compile', '$timeout', function (customModal, $compile, $timeout) {
-
-    var timeModalToBeClosed = 500;
+  .directive('customModal', ['customModal', '$compile', function (customModal, $compile) {
 
     return {
       restrict: 'E',
@@ -24,7 +22,8 @@ angular.module('starter.directives', [])
       var id = attrs.id;
       // Creates a unique variable name to get it be bound to `ng-hide`.
       var ngHideBinder = "hidden_" + id;
-      var modalEl = '<ion-pane ng-hide="' + ngHideBinder + '" class="menu-animation ng-hide"></ion-pane>';
+      var modalEl = '<ion-pane ng-hide="' + ngHideBinder + '" class="menu-animation ng-hide">' +
+        '</ion-pane>';
       scope[ngHideBinder] = true;
       transclude(wrap);
       // Passes handles to the customModal service.
@@ -49,21 +48,13 @@ angular.module('starter.directives', [])
         };
 
         // Makes modal visible.
-        function show(callbackBefore, callbackAfter) {
-          callbackBefore.call();
+        function show() {
           scope[ngHideBinder] = false;
-          callbackAfter.call();
         }
 
         // Hides modal.
-        function close(callbackBefore, callbackAfter) {
-          callbackBefore.call();
+        function close() {
           scope[ngHideBinder] = true;
-          // According to the .menu-animation css class,
-          // time is needed window to be closed is 0.5s.
-          // Thus, all actions connected with the modal DOM manipulation
-          // should be done after the animation is completed.
-          $timeout(callbackAfter, timeModalToBeClosed);
         }
 
         // Shows current state of the modal.
@@ -90,13 +81,22 @@ angular.module('starter.directives', [])
     function link(scope, element, attrs) {
 
       var id = attrs.id;
-      var menus = 'menu_' + id;
-      setViews();
-      var options = getOptions();
+      var views = 'view_' + id;
+      scope[views] = retrieveMenus(element.children());
+      var options = {
+        // Stores the root view.
+        root:       findRoot(scope[views]),
+        // Determines if all data should be erased after a modal is closed.
+        erasable:   attrs.erasable ? attrs.erasable === 'true' : true,
+        // Determines if the root view will be set as active after modal is closed.
+        returnable: attrs.returnable ? attrs.returnable === 'true' : true
+      };
 
       // Compiles modal content.
-      var menusTemplate = '<ion-pane ng-repeat="item in ' + menus + '" ng-show="item.isActive" ng-include="item.url"></ion-pane>';
-      var customModalTemplate = '<custom-modal id="' + id + '">' + menusTemplate + '</custom-modal>';
+      var menusTemplate = '<ion-pane ng-repeat="item in ' + views + '" ng-show="item.isActive"' +
+        'ng-include="item.url"></ion-pane>';
+      var customModalTemplate = '<custom-modal id="' + id + '">' + menusTemplate +
+        '</custom-modal>';
       var customModal = $compile(customModalTemplate)(scope);
       element.replaceWith(customModal);
 
@@ -106,48 +106,41 @@ angular.module('starter.directives', [])
        * Retrieves data from the inner view items
        * and applies it to the scope.
        */
-      function setViews() {
-        scope[menus] = [];
-        angular.forEach(element.children(), function (viewItem) {
-          if (viewItem.localName === 'view-item') {
-            var view = {};
-            if (viewItem.attributes['name'])      view.name = viewItem.attributes['name'].value;
-            if (viewItem.attributes['url'])       view.url = viewItem.attributes['url'].value;
-            if (viewItem.attributes['isActive'])  view.isActive = viewItem.attributes['isActive'].value === 'true';
-            if (viewItem.attributes['root'])      view.root = viewItem.attributes['root'].value === 'true';
-            if (viewItem.attributes['parent'])    view.parent = viewItem.attributes['parent'].value;
-            scope[menus].push(view);
+      function retrieveMenus(childElements) {
+        var views = [];
+        initMenus();
+        return views;
+
+        function initMenus() {
+          angular.forEach(childElements, function (viewItem) {
+            if (viewItem.localName === 'view-item') {
+              var view = {};
+              angular.forEach(['name', 'url', 'isActive', 'root', 'parent'],
+                setName.bind({viewItem: viewItem, view: view}));
+              views.push(view);
+            }
+          });
+
+          function setName(name) {
+            if (this.viewItem.attributes[name]) {
+              var value = this.viewItem.attributes[name].value;
+              this.view[name] = value === 'true' || value === 'false' ? value === 'true' : value;
+            }
           }
-        });
+        }
       }
 
       /**
-       * Reads the option attributes.
+       * Finds the root view.
        *
-       * @returns options object.
+       * @returns root view.
        */
-      function getOptions() {
-        return {
-          // Stores the root view.
-          root:       findRoot(),
-          // Determines if all data should be erased after modal is closed.
-          erasable:   validateBoolean(attrs.erasable),
-          // Determines if the root view will be set as active after modal is closed.
-          returnable: validateBoolean(attrs.returnable)
-        };
-
-        function validateBoolean(value) {
-          if (value) return value === 'true';
-          return true;
-        }
-
-        function findRoot() {
-          var result = undefined;
-          angular.forEach(scope[menus], function (view) {
-            if (view.root) result = view;
-          });
-          return result;
-        }
+      function findRoot(views) {
+        var result = undefined;
+        angular.forEach(views, function (view) {
+          if (view.root) result = view;
+        });
+        return result;
       }
 
       /**
@@ -160,11 +153,12 @@ angular.module('starter.directives', [])
           id:           id,
           setActive:    setActive,    // Finds view and sets as active
           previous:     previous,     // Returns to the parent view
-          close:        close         // Needs to be invoked after modal is closed
+          close:        close         // Needs to be invoked after a modal is closed
         };
 
+        // Sets view with an appropriate name as active.
         function setActive(name) {
-          angular.forEach(scope[menus], function (view) {
+          angular.forEach(scope[views], function (view) {
             if (view.name === name)
               view.isActive = true;
             else
@@ -172,23 +166,28 @@ angular.module('starter.directives', [])
           });
         }
 
+        // Goes back to the previous view.
         function previous() {
-          setActive(scope[menus].findByActivity().parent)
+          // findByActivity() method has been added to the Array's prototype
+          // and can be found in app.js file of the source code on GitHub or Plunker.
+          setActive(scope[views].findByActivity().parent)
         }
 
+        // Invokes after a modal is closed.
         function close() {
+          // If the 'erasable' option is set,
+          // then recompiles modal (erases all the input data).
           if (options.erasable) recompile();
+          // If the 'returnable' option is set,
+          // Returns to the root view.
           if (options.returnable) setActive(options.root.name);
-        }
 
-        function recompile() {
-          var pane = angular.element(customModal.children()[0]);
-          pane.empty();
-          pane.append($compile(menusTemplate)(scope));
+          function recompile() {
+            var pane = angular.element(customModal.children()[0]);
+            pane.empty();
+            pane.append($compile(menusTemplate)(scope));
+          }
         }
       }
-
-
     }
-
   }]);
