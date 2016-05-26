@@ -11,7 +11,7 @@ angular.module('starter.services', [])
   var timeModalToBeClosed = 500;
 
   // Registers hardware `back` button handler.
-  registerBackButtonAction();
+  registerBackButtonAction(modals);
 
   return {
     get:                get,
@@ -25,7 +25,7 @@ angular.module('starter.services', [])
   /**
    * Intercepts the hardware `back` button click on mobile device.
    */
-  function registerBackButtonAction() {
+  function registerBackButtonAction(modals) {
     // Set the highest priority.
     // More information on:
     // http://ionicframework.com/docs/api/service/$ionicPlatform/#registerBackButtonAction
@@ -41,6 +41,7 @@ angular.module('starter.services', [])
     function registration() {
       // isSatisfied() method has been added to the Array's prototype
       // and can be found in app.js file of the source code on GitHub or Plunker.
+      // Finds the element in an array that is satisfied the passed predicate.
       var modal = modals.isSatisfied(predicate);
       if (modal) {
         // Closes info view if it is opened.
@@ -73,6 +74,7 @@ angular.module('starter.services', [])
 
     // findById() method has been added to the Array's prototype
     // and can be found in app.js file of the source code on GitHub or Plunker.
+    // Finds the element in an array that is satisfied the passed predicate.
     var modal = modals.findById(id);
     return (!modal) ? createModal(id) : modal;
   }
@@ -83,10 +85,11 @@ angular.module('starter.services', [])
    * @param handler an object that provides methods for managing the directive.
    */
   function registerDirective(handler) {
+    // Looking for the modal with the same id as the directive has.
+    //
     // findById() method has been added to the Array's prototype
     // and can be found in app.js file of the source code on GitHub or Plunker.
-
-    // Looking for the modal with the same id as the directive has.
+    // Finds the element in an array that is satisfied the passed predicate.
     var modal = modals.findById(handler.id);
     if (!modal) modal = createModal(handler.id);
     modal.directiveHandler = handler;
@@ -102,7 +105,6 @@ angular.module('starter.services', [])
 
     var modal =  {
       id:           id,
-      // callbacks:    initCallbacks(),
       callbacks:    ['beforeOpened', 'afterOpened', 'beforeClosed', 'afterClosed']
                       .reduce(toObject, {}),
       show:         show,
@@ -186,6 +188,10 @@ angular.module('starter.services', [])
    */
   function registerDirective(handler) {
     // Looking for the modal with the same id as the directive has.
+    //
+    // findById() method has been added to the Array's prototype
+    // and can be found in app.js file of the source code on GitHub or Plunker.
+    // Finds the element in an array that is satisfied the passed predicate.
     var modal = modals.findById(handler.id);
     if (!modal) modal = createModal(handler.id);
     modal.directiveHandler = handler;

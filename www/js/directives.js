@@ -93,8 +93,8 @@ angular.module('starter.directives', [])
       };
 
       // Compiles modal content.
-      var menusTemplate = '<ion-pane ng-repeat="item in ' + views + '" ng-show="item.isActive"' +
-        'ng-include="item.url"></ion-pane>';
+      var menusTemplate = '<ion-pane ng-repeat="item in ' + views + '"' +
+        ' ng-show="item.isActive" ng-include="item.url"></ion-pane>';
       var customModalTemplate = '<custom-modal id="' + id + '">' + menusTemplate +
         '</custom-modal>';
       var customModal = $compile(customModalTemplate)(scope);
@@ -111,6 +111,9 @@ angular.module('starter.directives', [])
         initMenus();
         return views;
 
+        // Loops over the all child elements, finds the <view-item>
+        // and retrieves the data from its attributes.
+        // Assigns the retrieved data to the views array.
         function initMenus() {
           angular.forEach(childElements, function (viewItem) {
             if (viewItem.localName === 'view-item') {
@@ -121,6 +124,8 @@ angular.module('starter.directives', [])
             }
           });
 
+          // Helps to get value from an attribute.
+          // Determines whether the value is Boolean.
           function setName(name) {
             if (this.viewItem.attributes[name]) {
               var value = this.viewItem.attributes[name].value;
