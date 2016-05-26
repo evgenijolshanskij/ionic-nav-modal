@@ -31,14 +31,14 @@ angular.module('starter.services', [])
     // http://ionicframework.com/docs/api/service/$ionicPlatform/#registerBackButtonAction
     var priority = 500;
 
-    $ionicPlatform.registerBackButtonAction(registration, priority);
+    $ionicPlatform.registerBackButtonAction(backButtonAction, priority);
 
     function predicate(modal) {
       return modal && modal.directiveHandler && !modal.directiveHandler.isHidden();
     }
 
     // Closes the modal if it is opened, otherwise executes 'go back' action.
-    function registration() {
+    function backButtonAction() {
       // isSatisfied() method has been added to the Array's prototype
       // and can be found in app.js file of the source code on GitHub or Plunker.
       // Finds the element in an array that is satisfied the passed predicate.
