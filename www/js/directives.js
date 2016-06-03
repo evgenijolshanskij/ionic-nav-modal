@@ -2,7 +2,6 @@ angular.module('starter.directives', [])
 
 /**
  * Renders modal template.
- *
  */
   .directive('customModal', ['customModal', '$compile', function (customModal, $compile) {
 
@@ -18,46 +17,43 @@ angular.module('starter.directives', [])
 
     function link(scope, element, attrs, ctrl, transclude) {
 
-      // Assigns the directive id.
+      // gets the directive id
       var id = attrs.id;
-      // Creates a unique variable name to get it be bound to `ng-hide`.
+      // creates a unique variable name for `ng-hide`
       var ngHideBinder = "hidden_" + id;
-      var modalEl = '<ion-pane ng-hide="' + ngHideBinder + '" class="menu-animation ng-hide">' +
-        '</ion-pane>';
+      var modalEl = '<ion-pane ng-hide="' +
+        ngHideBinder +
+        '" class="menu-animation ng-hide"></ion-pane>';
       scope[ngHideBinder] = true;
-      transclude(wrap);
-      // Passes handles to the customModal service.
-      customModal.registerDirective(handler());
+      // gets the directive content and appends it to a modal element
+      transclude(function(clone) {
+        var wrapper = $compile(modalEl)(scope);
+        element.append(wrapper.append(clone));
+      });
+      // registers directive handler in the customModal service
+      customModal.setHandler(id, handler());
 
       //////////////////////////////////
 
-      // Transclude function implementation.
-      function wrap(clone) {
-        var wrapper = $compile(modalEl)(scope);
-        // Appends wrapper element and content of the directive.
-        element.append(wrapper.append(clone));
-      }
-
-      // Object that provides methods for modal visibility handling.
+      // object that provides methods for the modal visibility handling
       function handler() {
         return {
-          id: id,
           show: show,
           close: close,
           isHidden: isHidden
         };
 
-        // Makes modal visible.
+        // shows the modal
         function show() {
           scope[ngHideBinder] = false;
         }
 
-        // Hides modal.
+        // hides the modal
         function close() {
           scope[ngHideBinder] = true;
         }
 
-        // Shows current state of the modal.
+        // checks if the modal is hidden / visible
         function isHidden() {
           return scope[ngHideBinder];
         }
@@ -67,7 +63,8 @@ angular.module('starter.directives', [])
 
   }])
 
-  .directive('multiViewModal', ['multiViewModal', '$compile', function (multiViewModal, $compile) {
+  .directive('multiViewModal', ['multiViewModal', '$compile',
+    function (multiViewModal, $compile) {
 
     return {
       restrict: 'E',
@@ -82,88 +79,68 @@ angular.module('starter.directives', [])
 
       var id = attrs.id;
       var views = 'view_' + id;
-      scope[views] = retrieveMenus(element.children());
+
+      // reads views defined as child directive elements
+      scope[views] = readViews(element.children());
+
+      // reads options defined as directive attributes
       var options = {
-        // Stores the root view.
-        root:       findRoot(scope[views]),
         // Determines if all data should be erased after a modal is closed.
         erasable:   attrs.erasable ? attrs.erasable === 'true' : true,
         // Determines if the root view will be set as active after modal is closed.
         returnable: attrs.returnable ? attrs.returnable === 'true' : true
       };
 
-      // Compiles modal content.
-      var menusTemplate = '<ion-pane ng-repeat="item in ' + views + '"' +
+      // initializes and updates directive template
+      var viewsTemplate = '<ion-pane ng-repeat="item in ' + views + '"' +
         ' ng-show="item.isActive" ng-include="item.url"></ion-pane>';
-      var customModalTemplate = '<custom-modal id="' + id + '">' + menusTemplate +
+
+      var baseModalTemplate = '<custom-modal id="' + id + '">' +
+          viewsTemplate +
         '</custom-modal>';
-      var customModal = $compile(customModalTemplate)(scope);
-      element.replaceWith(customModal);
 
-      multiViewModal.registerDirective(handler());
+      var baseModal = $compile(baseModalTemplate)(scope);
+      element.replaceWith(baseModal);
+
+      // registers directive handler in the customModal service
+      multiViewModal.setHandler(id, handler());
 
       /**
-       * Retrieves data from the inner view items
-       * and applies it to the scope.
+       * Retrieves information about the views from the inner view items and their attrs.
        */
-      function retrieveMenus(childElements) {
-        var views = [];
-        initMenus();
-        return views;
-
-        // Loops over the all child elements, finds the <view-item>
-        // and retrieves the data from its attributes.
-        // Assigns the retrieved data to the views array.
-        function initMenus() {
-          angular.forEach(childElements, function (viewItem) {
-            if (viewItem.localName === 'view-item') {
-              var view = {};
-              angular.forEach(['name', 'url', 'isActive', 'root', 'parent'],
-                setName.bind({viewItem: viewItem, view: view}));
-              views.push(view);
-            }
-          });
-
-          // Helps to get value from an attribute.
-          // Determines whether the value is Boolean.
-          function setName(name) {
-            if (this.viewItem.attributes[name]) {
-              var value = this.viewItem.attributes[name].value;
-              this.view[name] = value === 'true' || value === 'false' ? value === 'true' : value;
-            }
+      function readViews(childElements) {
+        return Array.from(childElements).reduce(function (views, viewItem) {
+          if (viewItem.localName === 'view-item') {
+            views.push(
+              ['name', 'url', 'isActive', 'root', 'parent'].reduce(function(view, attrName) {
+                var attribute = viewItem.attributes[attrName];
+                if (attribute) {
+                  var value = attribute.value;
+                  view[attrName] = value === 'true' || value === 'false' ? value === 'true' : value;
+                }
+                return view;
+              }, {})
+            );
           }
-        }
+          return views;
+        }, []);
       }
 
       /**
-       * Finds the root view.
-       *
-       * @returns root view.
-       */
-      function findRoot(views) {
-        var result = undefined;
-        angular.forEach(views, function (view) {
-          if (view.root) result = view;
-        });
-        return result;
-      }
-
-      /**
-       * Creates a handler to run the directive.
-       *
-       * @returns directive handler.
+       * Creates a handler to manipulate the directive state.
        */
       function handler() {
         return {
-          id:           id,
-          setActive:    setActive,    // Finds view and sets as active
-          previous:     previous,     // Returns to the parent view
-          close:        close         // Needs to be invoked after a modal is closed
+          options: options,
+          activateRoot: activateRoot, // activate the root view
+          activateView: activateView, // activates view with the given name
+          previousView: previousView, // activates the previous view in hierarchy
+          clearInputs:  clearInputs   // clears all inputs by recompiling the modal
         };
 
         // Sets view with an appropriate name as active.
-        function setActive(name) {
-          angular.forEach(scope[views], function (view) {
+        function activateView(name) {
+          scope[views].forEach(function (view) {
             if (view.name === name)
               view.isActive = true;
             else
@@ -171,27 +148,19 @@ angular.module('starter.directives', [])
           });
         }
 
-        // Goes back to the previous view.
-        function previous() {
-          // findByActivity() method has been added to the Array's prototype
-          // and can be found in app.js file of the source code on GitHub or Plunker.
-          setActive(scope[views].findByActivity().parent)
+        function activateRoot() {
+          activateView(scope[views].find(function (view) { return view.root; }).name);
         }
 
-        // Invokes after a modal is closed.
-        function close() {
-          // If the 'erasable' option is set,
-          // then recompiles modal (erases all the input data).
-          if (options.erasable) recompile();
-          // If the 'returnable' option is set,
-          // Returns to the root view.
-          if (options.returnable) setActive(options.root.name);
+        // goes back to the previous view.
+        function previousView() {
+          activateView(scope[views].findByActivity().parent);
+        }
 
-          function recompile() {
-            var pane = angular.element(customModal.children()[0]);
-            pane.empty();
-            pane.append($compile(menusTemplate)(scope));
-          }
+        function clearInputs() {
+          var pane = angular.element(baseModal.children()[0]);
+          pane.empty();
+          pane.append($compile(viewsTemplate)(scope));
         }
       }
     }

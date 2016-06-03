@@ -1,21 +1,23 @@
 angular.module('starter.services', [])
 
 /**
- * Provides custom modal instance.
+ * Helps to access and manipulate custom modal instances.
  */
 .factory('customModal', ['$ionicPlatform', '$ionicHistory', '$state', '$timeout',
     function ($ionicPlatform, $ionicHistory, $state, $timeout) {
 
-  // Container to hold all modal instances that will be created.
+  // container to hold all available modal instances
   var modals              = [];
   var timeModalToBeClosed = 500;
 
-  // Registers hardware `back` button handler.
+  // registering hardware `back` button handler...
   registerBackButtonAction(modals);
 
   return {
-    get:                get,
-    registerDirective:  registerDirective
+    // returns model instance by id
+    get:        get,
+    // attaches a directive handler which allows to display / hide the modal
+    setHandler: setHandler
   };
 
   ////////////////////////////
@@ -23,37 +25,32 @@ angular.module('starter.services', [])
   ////////////////////////////
 
   /**
-   * Intercepts the hardware `back` button click on mobile device.
+   * Intercepts the hardware `back` button click on a mobile device.
    */
   function registerBackButtonAction(modals) {
-    // Set the highest priority.
-    // More information on:
-    // http://ionicframework.com/docs/api/service/$ionicPlatform/#registerBackButtonAction
-    var priority = 500;
-
-    $ionicPlatform.registerBackButtonAction(backButtonAction, priority);
-
-    function predicate(modal) {
-      return modal && modal.directiveHandler && !modal.directiveHandler.isHidden();
-    }
+    // registers back button action which closes the modal if it is opened
+    var priority = 500; // the highest priority for the action, please read
+    // http://ionicframework.com/docs/api/service/$ionicPlatform/
+    $ionicPlatform.registerBackButtonAction(backButtonAction.bind({modals: modals}), priority);
 
     // Closes the modal if it is opened, otherwise executes 'go back' action.
     function backButtonAction() {
-      // isSatisfied() method has been added to the Array's prototype
-      // and can be found in app.js file of the source code on GitHub or Plunker.
-      // Finds the element in an array that is satisfied the passed predicate.
-      var modal = modals.isSatisfied(predicate);
+      // checks if there is a modal that is currently opened
+      var modal = this.modals.find(function(modal) {
+        return modal && modal.directiveHandler && !modal.directiveHandler.isHidden();
+      });
       if (modal) {
-        // Closes info view if it is opened.
+        // closes the modal view if it is opened
         modal.close();
-        // In order to trigger modal hiding, state changing is simulated.
+        // simulates state change in order to trigger the modal hiding
         $state.go($state.current.name);
       } else {
-        // Checks if there is way back or not.
+        // otherwise, checks if there is a way back
         if ($ionicHistory.viewHistory().currentView.backViewId === null) {
-          // Quits app if there is no way back.
+          // exists the app if there is no way back
           ionic.Platform.exitApp();
         } else {
+          // or goes back to the previous page
           $ionicHistory.goBack();
         }
       }
@@ -61,66 +58,41 @@ angular.module('starter.services', [])
   }
 
   /**
-   * Retrieves modal for a user.
-   *
-   * @param   id directive's id.
-   * @returns {{modal}} an object represented modal dialog window
+   * Returns a modal instance by id.
    */
   function get(id) {
-
-    if (!id) throw new Error('"id" option is required. ' +
-      'Here is an example of valid modal initializing: ' +
-      'var modal = customModal.initialize({id: "your_modal_id"});');
-
-    // findById() method has been added to the Array's prototype
-    // and can be found in app.js file of the source code on GitHub or Plunker.
-    // Finds the element in an array that is satisfied the passed predicate.
-    var modal = modals.findById(id);
-    return (!modal) ? createModal(id) : modal;
+    return modals.findById(id) || createModal(id);
   }
 
   /**
-   * Binds a directive within an appropriate modal instance.
-   *
-   * @param handler an object that provides methods for managing the directive.
+   * Attaches a directive handler which is used to display / hide the modal.
    */
-  function registerDirective(handler) {
-    // Looking for the modal with the same id as the directive has.
-    //
-    // findById() method has been added to the Array's prototype
-    // and can be found in app.js file of the source code on GitHub or Plunker.
-    // Finds the element in an array that is satisfied the passed predicate.
-    var modal = modals.findById(handler.id);
-    if (!modal) modal = createModal(handler.id);
-    modal.directiveHandler = handler;
+  function setHandler(id, handler) {
+    (modals.findById(id) || createModal(id)).directiveHandler = handler;
   }
 
   /**
-   * Creates new modal instance.
-   *
-   * @param   id of the modal.
-   * @returns {{modal}} instance.
+   * Creates a new modal instance.
    */
   function createModal(id) {
 
     var modal =  {
-      id:           id,
-      callbacks:    ['beforeOpened', 'afterOpened', 'beforeClosed', 'afterClosed']
-                      .reduce(toObject, {}),
-      show:         show,
-      close:        close
+      // unique modal identifier
+      id: id,
+      // a set of dummy callback functions which can be overridden from a controller
+      callbacks: ['beforeOpened', 'afterOpened', 'beforeClosed', 'afterClosed'].reduce(
+        function(result, item) {result[item] = function(){}; return result;}, {}),
+      // shows the modal
+      show: show,
+      // hides the modal
+      close: close
     };
     // Adds modal to the array with the other modals.
     modals.push(modal);
     return modal;
 
-    function toObject(result, item) {
-      result[item] = function(){};
-      return result;
-    }
-
     /**
-     * Triggers opening modal event.
+     * Triggers the 'open' event, and executes callbacks.
      */
     function show() {
       this.callbacks.beforeOpened();
@@ -129,15 +101,12 @@ angular.module('starter.services', [])
     }
 
     /**
-     * Triggers closing modal event.
+     * Triggers the 'close' event, and executes callbacks.
      */
     function close() {
       this.callbacks.beforeClosed();
       this.directiveHandler.close();
-      // According to the .menu-animation css class (can be found in style.css file),
-      // time is needed window to be closed is 0.5s.
-      // Thus, all actions connected with the modal DOM manipulation
-      // should be done after the animation is completed.
+      // wait till window is closed, and only then perform DOM manipulations
       $timeout(this.callbacks.afterClosed, timeModalToBeClosed);
     }
 
@@ -146,19 +115,17 @@ angular.module('starter.services', [])
 }])
 
 /**
- * Provides custom modal instance.
- *
- * The modal that is provided by this service allows to create multiple
- * views inside and navigate between them.
+ * Helps to access and manipulate navigatable modal instances with
+ * multiple inner views.
  */
 .factory('multiViewModal', ['customModal', function (customModal) {
 
-  // Container to hold all modal instances that will be created.
+  // container to hold all available modal instances
   var modals = [];
 
   return {
     get: get,
-    registerDirective: registerDirective
+    setHandler: setHandler
   };
 
   ////////////////////////////
@@ -166,95 +133,75 @@ angular.module('starter.services', [])
   ////////////////////////////
 
   /**
-   * Gets modal instance.
-   *
-   * @param   id        set of parameters needed for the modal to be created
-   * @returns {{modal}} an object represented modal dialog window
+   * Returns a modal instance by id.
    */
   function get(id) {
-
-    if (!id) throw new Error('"id" option is required. ' +
-      'Here is an example of valid modal initializing: ' +
-      'var modal = customModal.initialize({id: "your_modal_id"});');
-
-    var modal = modals.findById(id);
-    return (!modal) ? createModal(id) : modal;
+    return modals.findById(id) || createModal(id);
   }
 
   /**
-   * Binds directive within appropriate modal instance.
-   *
-   * @param handler an object that provides methods for managing the directive.
+   * Attaches a directive handler which allows to manipulate modal state.
    */
-  function registerDirective(handler) {
-    // Looking for the modal with the same id as the directive has.
-    //
-    // findById() method has been added to the Array's prototype
-    // and can be found in app.js file of the source code on GitHub or Plunker.
-    // Finds the element in an array that is satisfied the passed predicate.
-    var modal = modals.findById(handler.id);
-    if (!modal) modal = createModal(handler.id);
-    modal.directiveHandler = handler;
+  function setHandler(id, handler) {
+    (modals.findById(id) || createModal(id)).directiveHandler = handler;
   }
 
   /**
-   * Creates new modal instance.
-   *
-   * @returns {{modal}} instance.
+   * Creates a new modal instance.
    */
   function createModal(id) {
-    // Start of the modal instance initialization process.
     var modal = {
-      id:           id,
-      show:         show,
-      close:        close,
-      activateMenu: activateMenu,
-      previous:     previous
+      id: id,
+      show: show,
+      close: close,
+      // activates view with the given name
+      activateView: activateView,
+      // activates the previous view in hierarchy
+      previousView: previousView
     };
-    modal.customModal = customModal.get(modal.id);
-    modal.customModal.callbacks.afterClosed = afterClosed.bind(modal);
+    modal.baseModal = customModal.get(modal.id);
+    modal.baseModal.callbacks.afterClosed = afterClosed.bind(modal);
     // Adds modal to the array with the other modals.
     modals.push(modal);
     return modal;
 
     /**
-     * Callback to be invoked after a modal is closed.
-     *
-     */
-    function afterClosed() {
-      // Triggers the directive's close() method after a modal is being closed.
-      // Applies preferences set by user. See the 'multiViewModal' directive to get more.
-      this.directiveHandler.close();
-    }
-
-    /**
-     * Triggers opening modal event.
+     * Triggers the 'open' event.
      */
     function show() {
-      this.customModal.show();
+      this.baseModal.show();
     }
 
     /**
-     * Triggers closing modal event.
+     * Triggers the 'close' event.
      */
     function close() {
-      this.customModal.close();
+      this.baseModal.close();
     }
 
     /**
-     * Activates view with the name that has been passed.
-     *
-     * @param name string with a name of the page
+     * Activates view with the given name.
      */
-    function activateMenu(name) {
-      this.directiveHandler.setActive(name);
+    function activateView(name) {
+      this.directiveHandler.activateView(name);
     }
 
     /**
-     * Sets previous view inside the modal as active.
+     * Activates the previous view in hierarchy.
      */
-    function previous() {
-      this.directiveHandler.previous();
+    function previousView() {
+      this.directiveHandler.previousView();
+    }
+
+    /**
+     * Clears inputs and pre-activates the root view if required.
+     */
+    function afterClosed() {
+      var handler = this.directiveHandler;
+      // `erasable` determines if all data should be erased after the modal is closed
+      if (handler.options.erasable) handler.clearInputs();
+      // `returnable` if the root view will be set as active after modal is closed
+      if (handler.options.returnable) handler.activateRoot();
     }
   }
 

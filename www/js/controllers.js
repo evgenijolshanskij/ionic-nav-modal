@@ -28,11 +28,11 @@ angular.module('starter.controllers', [])
   };
 
   $scope.activateMenu = function (name) {
-    multiPageModal.activateMenu(name);
+    multiPageModal.activateView(name);
   };
 
   $scope.previous = function () {
-    multiPageModal.previous();
+    multiPageModal.previousView();
   };
 
   // Modal service initialization.
