@@ -60,7 +60,8 @@ angular.module('starter.services', [])
    * Returns a modal instance by id.
    */
   function get(id) {
-    return modals.findById(id) || createModal(id);
+    return modals.find(function (modal) { return modal.id === id; }) ||
+      createModal(id);
   }
 
   /**
@@ -122,8 +123,8 @@ angular.module('starter.services', [])
   // container to hold all available modal instances
   var modals = [];
 
-  // this service repeats functionality of the first one
-  // in a real project it's better to take them out to avoid repetitions
+  // this partially service repeats functionality of the first one
+  // in a real project it's better to take all the repetitions out to some base service
   return {
     get: get,
     setHandler: setHandler
@@ -137,7 +138,8 @@ angular.module('starter.services', [])
    * Returns a modal instance by id.
    */
   function get(id) {
-    return modals.findById(id) || createModal(id);
+    return modals.find(function (modal) { return modal.baseModal.id === id; }) ||
+      createModal(id);
   }
 
   /**
@@ -151,16 +153,14 @@ angular.module('starter.services', [])
    * Creates a new modal instance.
    */
   function createModal(id) {
-    var baseModal = customModal.get(id);
     var modal = {
-      id: id,
+      baseModal: customModal.get(id),
       show: show,
       close: close,
       // activates view with the given name
       activateView: activateView,
       // activates the previous view in hierarchy
-      previousView: previousView,
-      baseModal: baseModal
+      previousView: previousView
     };
     modal.baseModal.callbacks.afterClosed = afterClosed(modal);
     // adds modal to the array with the other modals.
@@ -202,9 +202,10 @@ angular.module('starter.services', [])
       var m = modal;
       return function () {
         var handler = m.directiveHandler;
-        // `erasable` determines if all data should be erased after the modal is closed
+        // `erasable` determines if all input data is erased after the modal is closed
         if (handler.options.erasable) handler.clearInputs();
-        // `returnable` if the root view will be set as active after modal is closed
+        // `returnable` determines if the root view should be displayed to a user
+        // when the modal is opened for the next time
         if (handler.options.returnable) handler.activateRoot();
       };
     }

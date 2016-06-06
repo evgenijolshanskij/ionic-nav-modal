@@ -62,39 +62,3 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.directives',
   // if none of the above states are matched, use this as the fallback
   $urlRouterProvider.otherwise('/app/playlists');
 });
-
-Array.prototype.findById = function (id) {
-  var self = this;
-  if (self === null) throw new TypeError('Array.prototype.find called on null or undefined');
-
-  for (var i = 0; i < self.length; i++) {
-    if (self[i].id === id) return self[i];
-  }
-
-  return undefined;
-
-};
-
-Array.prototype.findByActivity = function () {
-  var self = this;
-  if (self === null) throw new TypeError('Array.prototype.find called on null or undefined');
-
-  for (var i = 0; i < self.length; i++) {
-    if (self[i].isActive) return self[i];
-  }
-
-  return undefined;
-
-};
-
-Array.prototype.isSatisfied = function (predicate) {
-  var self = this;
-  if (self === null) throw new TypeError('Array.prototype.find called on null or undefined');
-
-  for (var i = 0; i < self.length; i++) {
-    if (predicate.call(self, self[i])) return self[i];
-  }
-
-  return undefined;
-
-};

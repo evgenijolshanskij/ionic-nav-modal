@@ -3,7 +3,8 @@ angular.module('starter.directives', [])
 /**
  * Renders modal template.
  */
-  .directive('customModal', ['customModal', '$compile', function (customModal, $compile) {
+  .directive('customModal', ['customModal', '$compile',
+    function (customModal, $compile) {
 
     return {
       restrict: 'E',
@@ -82,12 +83,14 @@ angular.module('starter.directives', [])
 
       // reads views defined as child directive elements
       scope[views] = readViews(element.children());
+      // sets 'isActive' flag for the root view
+      scope[views].find(function(view) { return view.root; }).isActive = true;
 
       // reads options defined as directive attributes
       var options = {
-        // determines if all data should be erased after a modal is closed.
+        // controls if all data should be erased after a modal is closed
         erasable:   attrs.erasable ? attrs.erasable === 'true' : true,
-        // determines if the root view will be set as active after modal is closed.
+        // controls if the current active view will remain active when the modal reopened
         returnable: attrs.returnable ? attrs.returnable === 'true' : true
       };
 
@@ -113,11 +116,13 @@ angular.module('starter.directives', [])
         return Array.from(childElements).reduce(function (views, viewItem) {
           if (viewItem.localName === 'view-item') {
             views.push(
-              ['name', 'url', 'isActive', 'root', 'parent'].reduce(function(view, attrName) {
+              ['name', 'url', 'root', 'parent'].reduce(function(view, attrName) {
                 var attribute = viewItem.attributes[attrName];
                 if (attribute) {
                   var value = attribute.value;
-                  view[attrName] = value === 'true' || value === 'false' ? value === 'true' : value;
+                  view[attrName] =
+                    value === 'true' ||
+                    value === 'false' ? value === 'true' : value;
                 }
                 return view;
               }, {})
@@ -150,12 +155,15 @@ angular.module('starter.directives', [])
         }
 
         function activateRoot() {
-          activateView(scope[views].find(function (view) { return view.root; }).name);
+          activateView(scope[views]
+            .find(function (view) { return view.root; }).name);
         }
 
         // goes back to the previous view.
         function previousView() {
-          activateView(scope[views].findByActivity().parent);
+          activateView(scope[views]
+            .find(function (view) { return view.isActive; })
+            .parent);
         }
 
         function clearInputs() {
