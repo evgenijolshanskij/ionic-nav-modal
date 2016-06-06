@@ -85,9 +85,9 @@ angular.module('starter.directives', [])
 
       // reads options defined as directive attributes
       var options = {
-        // Determines if all data should be erased after a modal is closed.
+        // determines if all data should be erased after a modal is closed.
         erasable:   attrs.erasable ? attrs.erasable === 'true' : true,
-        // Determines if the root view will be set as active after modal is closed.
+        // determines if the root view will be set as active after modal is closed.
         returnable: attrs.returnable ? attrs.returnable === 'true' : true
       };
 
@@ -102,11 +102,12 @@ angular.module('starter.directives', [])
       var baseModal = $compile(baseModalTemplate)(scope);
       element.replaceWith(baseModal);
 
-      // registers directive handler in the customModal service
+      // registers directive handler in the multiViewModal service
       multiViewModal.setHandler(id, handler());
 
       /**
-       * Retrieves information about the views from the inner view items and their attrs.
+       * Retrieves an information about the views
+       * from the directive child elements and their attrs.
        */
       function readViews(childElements) {
         return Array.from(childElements).reduce(function (views, viewItem) {
@@ -138,7 +139,7 @@ angular.module('starter.directives', [])
           clearInputs:  clearInputs   // clears all inputs by recompiling the modal
         };
 
-        // Sets view with an appropriate name as active.
+        // sets view with an appropriate name as active.
         function activateView(name) {
           scope[views].forEach(function (view) {
             if (view.name === name)

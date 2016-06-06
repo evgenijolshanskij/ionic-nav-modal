@@ -7,11 +7,10 @@ angular.module('starter.services', [])
     function ($ionicPlatform, $ionicHistory, $state, $timeout) {
 
   // container to hold all available modal instances
-  var modals              = [];
-  var timeModalToBeClosed = 500;
+  var modals = [];
 
   // registering hardware `back` button handler...
-  registerBackButtonAction(modals);
+  registerBackButtonAction();
 
   return {
     // returns model instance by id
@@ -27,16 +26,16 @@ angular.module('starter.services', [])
   /**
    * Intercepts the hardware `back` button click on a mobile device.
    */
-  function registerBackButtonAction(modals) {
+  function registerBackButtonAction() {
     // registers back button action which closes the modal if it is opened
     var priority = 500; // the highest priority for the action, please read
     // http://ionicframework.com/docs/api/service/$ionicPlatform/
-    $ionicPlatform.registerBackButtonAction(backButtonAction.bind({modals: modals}), priority);
+    $ionicPlatform.registerBackButtonAction(backButtonAction, priority);
 
-    // Closes the modal if it is opened, otherwise executes 'go back' action.
+    // closes the modal if it is opened, otherwise executes 'go back' action.
     function backButtonAction() {
       // checks if there is a modal that is currently opened
-      var modal = this.modals.find(function(modal) {
+      var modal = modals.find(function(modal) {
         return modal && modal.directiveHandler && !modal.directiveHandler.isHidden();
       });
       if (modal) {
@@ -68,7 +67,7 @@ angular.module('starter.services', [])
    * Attaches a directive handler which is used to display / hide the modal.
    */
   function setHandler(id, handler) {
-    (modals.findById(id) || createModal(id)).directiveHandler = handler;
+    get(id).directiveHandler = handler;
   }
 
   /**
@@ -87,7 +86,7 @@ angular.module('starter.services', [])
       // hides the modal
       close: close
     };
-    // Adds modal to the array with the other modals.
+    // adds modal to the array with the other modals.
     modals.push(modal);
     return modal;
 
@@ -107,7 +106,7 @@ angular.module('starter.services', [])
       this.callbacks.beforeClosed();
       this.directiveHandler.close();
       // wait till window is closed, and only then perform DOM manipulations
-      $timeout(this.callbacks.afterClosed, timeModalToBeClosed);
+      $timeout(this.callbacks.afterClosed, 500);
     }
 
   }
@@ -123,6 +122,8 @@ angular.module('starter.services', [])
   // container to hold all available modal instances
   var modals = [];
 
+  // this service repeats functionality of the first one
+  // in a real project it's better to take them out to avoid repetitions
   return {
     get: get,
     setHandler: setHandler
@@ -143,13 +144,14 @@ angular.module('starter.services', [])
    * Attaches a directive handler which allows to manipulate modal state.
    */
   function setHandler(id, handler) {
-    (modals.findById(id) || createModal(id)).directiveHandler = handler;
+    get(id).directiveHandler = handler;
   }
 
   /**
    * Creates a new modal instance.
    */
   function createModal(id) {
+    var baseModal = customModal.get(id);
     var modal = {
       id: id,
       show: show,
@@ -157,11 +159,11 @@ angular.module('starter.services', [])
       // activates view with the given name
       activateView: activateView,
       // activates the previous view in hierarchy
-      previousView: previousView
+      previousView: previousView,
+      baseModal: baseModal
     };
-    modal.baseModal = customModal.get(modal.id);
-    modal.baseModal.callbacks.afterClosed = afterClosed.bind(modal);
-    // Adds modal to the array with the other modals.
+    modal.baseModal.callbacks.afterClosed = afterClosed(modal);
+    // adds modal to the array with the other modals.
     modals.push(modal);
     return modal;
 
@@ -196,12 +198,15 @@ angular.module('starter.services', [])
     /**
      * Clears inputs and pre-activates the root view if required.
      */
-    function afterClosed() {
-      var handler = this.directiveHandler;
-      // `erasable` determines if all data should be erased after the modal is closed
-      if (handler.options.erasable) handler.clearInputs();
-      // `returnable` if the root view will be set as active after modal is closed
-      if (handler.options.returnable) handler.activateRoot();
+    function afterClosed(modal) {
+      var m = modal;
+      return function () {
+        var handler = m.directiveHandler;
+        // `erasable` determines if all data should be erased after the modal is closed
+        if (handler.options.erasable) handler.clearInputs();
+        // `returnable` if the root view will be set as active after modal is closed
+        if (handler.options.returnable) handler.activateRoot();
+      };
     }
   }
 
