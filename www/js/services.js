@@ -42,6 +42,7 @@ angular.module('starter.services', [])
         // closes the modal view if it is opened
         modal.close();
         // simulates state change in order to trigger the modal hiding
+        // this line guaranteed fast and inevitable modal hiding
         $state.go($state.current.name);
       } else {
         // otherwise, checks if there is a way back
